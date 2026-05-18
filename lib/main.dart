@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'view/core/colors.dart';
+import 'view/pages/home_page.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -11,30 +14,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'CetakIn',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         fontFamily: GoogleFonts.hankenGrotesk().fontFamily,
+        useMaterial3: true,
+        textTheme: GoogleFonts.hankenGroteskTextTheme(),
       ),
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('CetakIn'),
-        actions: [Icon(Icons.notifications_none)],
-      ),
-      body: SafeArea(
-        child: Column(children: [Text('Halo, mau cetak apa hari ini?')]),
-      ),
+      home: const HomePage(),
     );
   }
 }
