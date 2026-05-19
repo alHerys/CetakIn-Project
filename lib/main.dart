@@ -9,8 +9,8 @@ import 'data/repositories/admin_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/services/admin/admin_service.dart';
 import 'data/services/auth/auth_service.dart';
+import 'data/services/dio_client.dart';
 import 'data/services/shop/shop_service.dart';
-import 'data/services/core/dio_client.dart';
 import 'view/core/colors.dart';
 import 'view/pages/login_page.dart';
 

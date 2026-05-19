@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../models/shop/shop_model.dart';
-import '../core/dio_client.dart';
+import '../dio_client.dart';
 
 class AdminService {
   final DioClient _dioClient;

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DioClient {
   late Dio _dio;
   final SharedPreferences _prefs;
-  static const String baseUrl = 'http://localhost:8000/api/jv1/';
+  static const String baseUrl = 'http://localhost:8000/api/v1/';
 
   DioClient(this._prefs) {
     _dio = Dio(
@@ -24,14 +24,14 @@ class DioClient {
         onRequest: (options, handler) {
           final token = _prefs.getString('auth_token');
           if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+            options.headers['Authorization'] = 'Bearer $token'; // MENAMBAHKAN TOKEN KE REQUEST
           }
           return handler.next(options);
         },
         onError: (DioException e, handler) {
-          // Handle global errors like 401 Unauthorized
+          // HANDLE GLOBAL ERROR
           if (e.response?.statusCode == 401) {
-            // Logout user or refresh token
+            // TODO: LOGOUT USER
           }
           return handler.next(e);
         },

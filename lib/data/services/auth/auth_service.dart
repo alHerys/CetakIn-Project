@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../models/auth/auth_response.dart';
 import '../../models/auth/user_model.dart';
-import '../core/dio_client.dart';
+import '../dio_client.dart';
 
 class AuthService {
   final DioClient _dioClient;

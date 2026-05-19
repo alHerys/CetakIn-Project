@@ -1,4 +1,5 @@
-import '../core/dio_client.dart';
+
+import '../dio_client.dart';
 
 class ReviewService {
   final DioClient _dioClient;

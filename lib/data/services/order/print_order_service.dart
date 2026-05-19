@@ -1,4 +1,5 @@
-import '../core/dio_client.dart';
+
+import '../dio_client.dart';
 
 class PrintOrderService {
   final DioClient _dioClient;

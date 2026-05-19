@@ -1,4 +1,4 @@
-import '../core/dio_client.dart';
+import '../dio_client.dart';
 
 class DiscoveryService {
   final DioClient _dioClient;
