@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'bloc/admin/admin_bloc.dart';
 import 'bloc/auth/auth_bloc.dart';
+import 'data/repositories/admin_repository.dart';
 import 'data/repositories/auth_repository.dart';
+import 'data/services/admin_service.dart';
 import 'data/services/auth_service.dart';
 import 'data/services/dio_client.dart';
 import 'view/core/colors.dart';
@@ -17,6 +20,9 @@ void main() async {
   final dioClient = DioClient(prefs);
   final authService = AuthService(dioClient);
   final authRepository = AuthRepository(authService, prefs);
+  
+  final adminService = AdminService(dioClient);
+  final adminRepository = AdminRepository(adminService);
 
   runApp(
     MultiRepositoryProvider(
@@ -24,11 +30,17 @@ void main() async {
         RepositoryProvider<AuthRepository>(
           create: (context) => authRepository,
         ),
+        RepositoryProvider<AdminRepository>(
+          create: (context) => adminRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
             create: (context) => AuthBloc(authRepository),
+          ),
+          BlocProvider<AdminBloc>(
+            create: (context) => AdminBloc(adminRepository),
           ),
         ],
         child: const MyApp(),

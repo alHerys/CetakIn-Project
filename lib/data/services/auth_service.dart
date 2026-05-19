@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/auth/auth_response.dart';
+import '../models/auth/user_model.dart';
+import '../models/shop/shop_model.dart';
 import 'dio_client.dart';
 
 class AuthService {
@@ -10,11 +12,8 @@ class AuthService {
   Future<AuthResponse> login(String email, String password) async {
     try {
       final response = await _dioClient.dio.post(
-        '/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-        },
+        'auth/login',
+        data: {'email': email, 'password': password},
       );
 
       return AuthResponse.fromJson(response.data['data']);
@@ -32,7 +31,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dioClient.dio.post(
-        '/auth/register',
+        'auth/register',
         data: {
           'name': name,
           'email': email,
@@ -80,14 +79,13 @@ class AuthService {
         formDataMap['shop_photo'] = shopPhoto;
       }
 
-      // Add operating_days[] manually to FormData if it's a list
       final formData = FormData.fromMap(formDataMap);
       for (var day in operatingDays) {
         formData.fields.add(MapEntry('operating_days[]', day));
       }
 
       final response = await _dioClient.dio.post(
-        '/auth/register/partner',
+        'auth/register/partner',
         data: formData,
       );
 
@@ -99,9 +97,72 @@ class AuthService {
 
   Future<void> logout() async {
     try {
-      await _dioClient.dio.post('/auth/logout');
+      await _dioClient.dio.post('auth/logout');
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'Logout failed';
+    }
+  }
+
+  Future<AuthResponse> getMe() async {
+    try {
+      final response = await _dioClient.dio.get('auth/me');
+      return AuthResponse(
+        user: UserModel.fromJson(response.data['data']),
+        token: '', 
+      );
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to get user data';
+    }
+  }
+
+  Future<UserModel> updateProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    try {
+      final response = await _dioClient.dio.put(
+        'auth/me',
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+        },
+      );
+      return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to update profile';
+    }
+  }
+
+  Future<ShopModel> getMyShop() async {
+    try {
+      final response = await _dioClient.dio.get('shops/me');
+      return ShopModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to get shop info';
+    }
+  }
+
+  Future<ShopModel> updateShop({
+    String? shopName,
+    String? shopAddress,
+    String? shopPhone,
+    String? shopDescription,
+  }) async {
+    try {
+      final response = await _dioClient.dio.put(
+        'shops/me',
+        data: {
+          'shop_name': ?shopName,
+          'shop_address': ?shopAddress,
+          'shop_phone': ?shopPhone,
+          'shop_description': ?shopDescription,
+        },
+      );
+      return ShopModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to update shop info';
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth/auth_response.dart';
+import '../models/auth/user_model.dart';
+import '../models/shop/shop_model.dart';
 import '../services/auth_service.dart';
 
 class AuthRepository {
@@ -82,6 +84,54 @@ class AuthRepository {
       await _authService.logout();
       await _clearToken();
       return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, UserModel>> getMe() async {
+    try {
+      final response = await _authService.getMe();
+      var user = response.user;
+      
+      if (user.role == 'partner') {
+        final shop = await _authService.getMyShop();
+        user = user.copyWith(shop: shop);
+      }
+      
+      return Right(user);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, UserModel>> updateProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    try {
+      final user = await _authService.updateProfile(name: name, email: email, phone: phone);
+      return Right(user);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, ShopModel>> updateShop({
+    String? shopName,
+    String? shopAddress,
+    String? shopPhone,
+    String? shopDescription,
+  }) async {
+    try {
+      final shop = await _authService.updateShop(
+        shopName: shopName,
+        shopAddress: shopAddress,
+        shopPhone: shopPhone,
+        shopDescription: shopDescription,
+      );
+      return Right(shop);
     } catch (e) {
       return Left(e.toString());
     }

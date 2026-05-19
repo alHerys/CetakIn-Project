@@ -54,3 +54,29 @@ class AuthRegisterPartnerRequested extends AuthEvent {
 }
 
 class AuthLogoutRequested extends AuthEvent {}
+
+class AuthUpdateProfileAndShopRequested extends AuthEvent {
+  final String name;
+  final String email;
+  final String phone;
+  final String? shopName;
+  final String? shopPhone;
+  final String? shopDescription;
+
+  AuthUpdateProfileAndShopRequested({
+    required this.name,
+    required this.email,
+    required this.phone,
+    this.shopName,
+    this.shopPhone,
+    this.shopDescription,
+  });
+}
+
+class AuthUpdateAddressRequested extends AuthEvent {
+  final String address;
+
+  AuthUpdateAddressRequested({required this.address});
+}
+
+class AuthRefreshUserRequested extends AuthEvent {}

@@ -11,6 +11,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthRegisterPartnerRequested>(_onRegisterPartnerRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthUpdateProfileAndShopRequested>(_onUpdateProfileAndShopRequested);
+    on<AuthUpdateAddressRequested>(_onUpdateAddressRequested);
+    on<AuthRefreshUserRequested>(_onRefreshUserRequested);
   }
 
   Future<void> _onLoginRequested(
@@ -77,6 +80,90 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthFailure(failure)),
       (_) => emit(AuthLoggedOut()),
+    );
+  }
+
+  Future<void> _onUpdateProfileAndShopRequested(
+    AuthUpdateProfileAndShopRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthSuccess) return;
+
+    emit(AuthUpdateLoading(user: currentState.user, token: currentState.token));
+
+    final profileResult = await _authRepository.updateProfile(
+      name: event.name,
+      email: event.email,
+      phone: event.phone,
+    );
+
+    await profileResult.fold(
+      (failure) async {
+        emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+      },
+      (_) async {
+        if (currentState.user.role == 'partner') {
+          final shopResult = await _authRepository.updateShop(
+            shopName: event.shopName,
+            shopPhone: event.shopPhone,
+            shopDescription: event.shopDescription,
+          );
+          await shopResult.fold(
+            (failure) async {
+              emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+            },
+            (_) async => await _fetchMeAndEmitSuccess(emit, currentState.token, 'Profile updated successfully'),
+          );
+        } else {
+          await _fetchMeAndEmitSuccess(emit, currentState.token, 'Profile updated successfully');
+        }
+      },
+    );
+  }
+
+  Future<void> _onUpdateAddressRequested(
+    AuthUpdateAddressRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthSuccess) return;
+
+    emit(AuthUpdateLoading(user: currentState.user, token: currentState.token));
+
+    if (currentState.user.role == 'partner') {
+      final shopResult = await _authRepository.updateShop(shopAddress: event.address);
+      await shopResult.fold(
+        (failure) async {
+          emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+        },
+        (_) async => await _fetchMeAndEmitSuccess(emit, currentState.token, 'Address updated successfully'),
+      );
+    } else {
+      // Mock for non-partner address update
+      emit(AuthUpdateSuccess(message: 'Address updated successfully', user: currentState.user, token: currentState.token));
+    }
+  }
+
+  Future<void> _onRefreshUserRequested(
+    AuthRefreshUserRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthSuccess) return;
+
+    final meResult = await _authRepository.getMe();
+    meResult.fold(
+      (failure) => null, // Just ignore or handle failure
+      (user) => emit(AuthSuccess(user: user, token: currentState.token)),
+    );
+  }
+
+  Future<void> _fetchMeAndEmitSuccess(Emitter<AuthState> emit, String token, String message) async {
+    final meResult = await _authRepository.getMe();
+    meResult.fold(
+      (failure) => emit(AuthUpdateFailure(error: failure, user: (state as AuthSuccess).user, token: token)),
+      (user) => emit(AuthUpdateSuccess(message: message, user: user, token: token)),
     );
   }
 }
