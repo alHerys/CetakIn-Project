@@ -1,11 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'bloc/auth/auth_bloc.dart';
+import 'data/repositories/auth_repository.dart';
+import 'data/services/auth_service.dart';
+import 'data/services/dio_client.dart';
 import 'view/core/colors.dart';
 import 'view/pages/login_page.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  
+  final dioClient = DioClient(prefs);
+  final authService = AuthService(dioClient);
+  final authRepository = AuthRepository(authService, prefs);
+
+  runApp(
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AuthRepository>(
+          create: (context) => authRepository,
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (context) => AuthBloc(authRepository),
+          ),
+        ],
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
