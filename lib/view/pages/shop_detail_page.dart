@@ -5,16 +5,18 @@ class ShopDetailPage extends StatelessWidget {
   final String title;
   final double distance;
   final String status;
-  final String openTime;
+  final TimeOfDay openTime;
+  final TimeOfDay closeTime;
   final double rating;
   final String imageUrl;
-  
+
   const ShopDetailPage({
     super.key,
     required this.title,
     required this.distance,
     required this.status,
     required this.openTime,
+    required this.closeTime,
     required this.rating,
     required this.imageUrl,
   });

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../core/colors.dart';
-import '../pages/shop_detail_page.dart';
 
 class ShopCard extends StatelessWidget {
   final String title;
@@ -24,19 +23,7 @@ class ShopCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ShopDetailPage(
-              title: title,
-              distance: distance,
-              status: status,
-              openTime: openTime,
-              rating: rating,
-              imageUrl: imageUrl,
-            ),
-          ),
-        );
+        
       },
       child: Container(
         width: double.infinity,

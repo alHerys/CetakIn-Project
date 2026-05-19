@@ -66,69 +66,6 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 24),
 
-              Text(
-                'Halo, mau cetak apa hari ini?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              SearchAnchor(
-                searchController: _searchController,
-                builder: (BuildContext context, SearchController controller) {
-                  return SearchBar(
-                    controller: controller,
-                    hintText: 'Cari percetakan terdekat...',
-                    onTap: () => controller.openView(),
-                    onChanged: (_) => controller.openView(),
-                    leading: const Icon(
-                      Icons.search,
-                      color: AppColors.textSecondary,
-                      size: 18,
-                    ),
-                    hintStyle: WidgetStatePropertyAll(
-                      TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    textStyle: WidgetStatePropertyAll(
-                      TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    backgroundColor: const WidgetStatePropertyAll(Colors.white),
-                    elevation: const WidgetStatePropertyAll(0),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: AppColors.border),
-                      ),
-                    ),
-                    padding: const WidgetStatePropertyAll(
-                      .symmetric(horizontal: 16, vertical: 0),
-                    ),
-                    constraints: const BoxConstraints(
-                      minHeight: 48,
-                      maxHeight: 48,
-                    ),
-                  );
-                },
-                suggestionsBuilder:
-                    (BuildContext context, SearchController controller) {
-                      return [];
-                    },
-              ),
-
-              const SizedBox(height: 24),
-
               Row(
                 children: [
                   const Icon(
