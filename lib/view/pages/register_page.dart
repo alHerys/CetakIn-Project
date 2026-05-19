@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../core/colors.dart';
-import '../../core/utils/validator.dart';
+import '../core/validator.dart';
 import '../widgets/auth_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -61,7 +61,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 8,
                       children: [
                         // Logo & Welcome Header
                         Column(

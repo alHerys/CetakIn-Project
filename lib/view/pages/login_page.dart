@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/colors.dart';
-import '../../core/utils/validator.dart';
+import '../core/validator.dart';
 import '../widgets/auth_text_field.dart';
 import 'register_page.dart';
 
