@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
-import '../models/auth/auth_response.dart';
-import '../models/auth/user_model.dart';
-import '../models/shop/shop_model.dart';
-import 'dio_client.dart';
+import '../../models/auth/auth_response.dart';
+import '../../models/auth/user_model.dart';
+import '../core/dio_client.dart';
 
 class AuthService {
   final DioClient _dioClient;
@@ -132,37 +131,6 @@ class AuthService {
       return UserModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'Failed to update profile';
-    }
-  }
-
-  Future<ShopModel> getMyShop() async {
-    try {
-      final response = await _dioClient.dio.get('shops/me');
-      return ShopModel.fromJson(response.data['data']);
-    } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'Failed to get shop info';
-    }
-  }
-
-  Future<ShopModel> updateShop({
-    String? shopName,
-    String? shopAddress,
-    String? shopPhone,
-    String? shopDescription,
-  }) async {
-    try {
-      final response = await _dioClient.dio.put(
-        'shops/me',
-        data: {
-          'shop_name': ?shopName,
-          'shop_address': ?shopAddress,
-          'shop_phone': ?shopPhone,
-          'shop_description': ?shopDescription,
-        },
-      );
-      return ShopModel.fromJson(response.data['data']);
-    } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'Failed to update shop info';
     }
   }
 }

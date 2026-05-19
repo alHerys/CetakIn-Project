@@ -3,13 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth/auth_response.dart';
 import '../models/auth/user_model.dart';
 import '../models/shop/shop_model.dart';
-import '../services/auth_service.dart';
+import '../services/auth/auth_service.dart';
+import '../services/shop/shop_service.dart';
 
 class AuthRepository {
   final AuthService _authService;
+  final ShopService _shopService;
   final SharedPreferences _prefs;
 
-  AuthRepository(this._authService, this._prefs);
+  AuthRepository(this._authService, this._shopService, this._prefs);
 
   Future<Either<String, AuthResponse>> login(String email, String password) async {
     try {
@@ -95,7 +97,7 @@ class AuthRepository {
       var user = response.user;
       
       if (user.role == 'partner') {
-        final shop = await _authService.getMyShop();
+        final shop = await _shopService.getMyShop();
         user = user.copyWith(shop: shop);
       }
       
@@ -125,7 +127,7 @@ class AuthRepository {
     String? shopDescription,
   }) async {
     try {
-      final shop = await _authService.updateShop(
+      final shop = await _shopService.updateShop(
         shopName: shopName,
         shopAddress: shopAddress,
         shopPhone: shopPhone,

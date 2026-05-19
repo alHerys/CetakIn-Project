@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DioClient {
   late Dio _dio;
   final SharedPreferences _prefs;
-  static const String baseUrl = 'http://localhost:8000/api/jv1/';
+  static const String baseUrl = 'http://localhost:8000/api/v1/';
 
   DioClient(this._prefs) {
     _dio = Dio(

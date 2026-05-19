@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../models/shop/shop_model.dart';
-import '../services/admin_service.dart';
+import '../services/admin/admin_service.dart';
 
 class AdminRepository {
   final AdminService _adminService;
