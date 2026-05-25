@@ -59,7 +59,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'CetakIn',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         fontFamily: GoogleFonts.hankenGrotesk().fontFamily,
         useMaterial3: true,

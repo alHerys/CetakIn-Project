@@ -6,7 +6,7 @@ import '../dio_client.dart';
 class AuthService {
   final DioClient _dioClient;
 
-  AuthService(this._dioClient);
+  const AuthService(this._dioClient);
 
   Future<AuthResponse> login(String email, String password) async {
     try {
@@ -131,6 +131,23 @@ class AuthService {
       return UserModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'Failed to update profile';
+    }
+  }
+
+  Future<UserModel> updateAvatar(dynamic avatar) async {
+    try {
+      final formData = FormData.fromMap({
+        'avatar': avatar,
+      });
+
+      final response = await _dioClient.dio.post(
+        'auth/me/avatar',
+        data: formData,
+      );
+
+      return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to update avatar';
     }
   }
 }

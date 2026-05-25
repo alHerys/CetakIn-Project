@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -24,6 +27,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _shopNameController;
   late TextEditingController _shopPhoneController;
   late TextEditingController _shopDescriptionController;
+
+  XFile? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -53,6 +59,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
@@ -60,9 +87,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
               name: _nameController.text,
               email: _emailController.text,
               phone: _phoneController.text,
-              shopName: _shopNameController.text.isNotEmpty ? _shopNameController.text : null,
-              shopPhone: _shopPhoneController.text.isNotEmpty ? _shopPhoneController.text : null,
-              shopDescription: _shopDescriptionController.text.isNotEmpty ? _shopDescriptionController.text : null,
+              shopName: _shopNameController.text.isNotEmpty
+                  ? _shopNameController.text
+                  : null,
+              shopPhone: _shopPhoneController.text.isNotEmpty
+                  ? _shopPhoneController.text
+                  : null,
+              shopDescription: _shopDescriptionController.text.isNotEmpty
+                  ? _shopDescriptionController.text
+                  : null,
+              avatarPath: _selectedImage?.path,
             ),
           );
     }
@@ -76,7 +110,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
-          Navigator.pop(context); // Go back after success
+          if (state.message == 'Avatar updated successfully') {
+            setState(() {
+              _selectedImage = null;
+            });
+          } else {
+            Navigator.pop(context); // Go back after profile update success
+          }
         } else if (state is AuthUpdateFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error)),
@@ -106,6 +146,84 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Profile Photo Section
+                    Center(
+                      child: Column(
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  shape: BoxShape.circle,
+                                  image: _selectedImage != null
+                                      ? DecorationImage(
+                                          image: FileImage(
+                                              File(_selectedImage!.path)),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : (state.user.avatarUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                  state.user.avatarUrl!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null),
+                                ),
+                                child: _selectedImage == null &&
+                                        state.user.avatarUrl == null
+                                    ? const Icon(Icons.person,
+                                        size: 60, color: Colors.grey)
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: isLoading ? null : _pickImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.add_a_photo_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (_selectedImage != null)
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: isLoading ? null : _removeImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     const Text(
                       'Personal Information',
                       style: TextStyle(
@@ -138,7 +256,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       hintText: 'Enter your phone number',
                       icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
-                      validator: (val) => val == null || val.isEmpty ? 'Phone number is required' : null,
+                      validator: (val) => val == null || val.isEmpty
+                          ? 'Phone number is required'
+                          : null,
                     ),
 
                     if (isPartner) ...[
@@ -157,7 +277,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         labelText: 'Shop Name',
                         hintText: 'Enter shop name',
                         icon: Icons.storefront_outlined,
-                        validator: (val) => val == null || val.isEmpty ? 'Shop name is required' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Shop name is required'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       AuthTextField(
@@ -166,7 +288,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         hintText: 'Enter shop phone number',
                         icon: Icons.phone_in_talk_outlined,
                         keyboardType: TextInputType.phone,
-                        validator: (val) => val == null || val.isEmpty ? 'Shop phone is required' : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Shop phone is required'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       AuthTextField(

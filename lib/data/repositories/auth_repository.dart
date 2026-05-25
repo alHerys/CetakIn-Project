@@ -94,14 +94,7 @@ class AuthRepository {
   Future<Either<String, UserModel>> getMe() async {
     try {
       final response = await _authService.getMe();
-      var user = response.user;
-      
-      if (user.role == 'partner') {
-        final shop = await _shopService.getMyShop();
-        user = user.copyWith(shop: shop);
-      }
-      
-      return Right(user);
+      return Right(response.user);
     } catch (e) {
       return Left(e.toString());
     }
@@ -114,6 +107,15 @@ class AuthRepository {
   }) async {
     try {
       final user = await _authService.updateProfile(name: name, email: email, phone: phone);
+      return Right(user);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, UserModel>> updateAvatar(dynamic avatar) async {
+    try {
+      final user = await _authService.updateAvatar(avatar);
       return Right(user);
     } catch (e) {
       return Left(e.toString());

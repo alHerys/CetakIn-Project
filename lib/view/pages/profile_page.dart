@@ -53,13 +53,20 @@ class ProfilePage extends StatelessWidget {
                             backgroundColor: AppColors.primary.withValues(
                               alpha: 0.1,
                             ),
-                            child: Icon(
-                              isAdmin
-                                  ? Icons.admin_panel_settings_outlined
-                                  : (isPartner ? Icons.storefront : Icons.person),
-                              size: 50,
-                              color: AppColors.primary,
-                            ),
+                            backgroundImage: user.avatarUrl != null
+                                ? NetworkImage(user.avatarUrl!)
+                                : null,
+                            child: user.avatarUrl == null
+                                ? Icon(
+                                    isAdmin
+                                        ? Icons.admin_panel_settings_outlined
+                                        : (isPartner
+                                            ? Icons.storefront
+                                            : Icons.person),
+                                    size: 50,
+                                    color: AppColors.primary,
+                                  )
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           Text(

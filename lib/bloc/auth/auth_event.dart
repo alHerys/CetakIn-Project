@@ -62,6 +62,7 @@ class AuthUpdateProfileAndShopRequested extends AuthEvent {
   final String? shopName;
   final String? shopPhone;
   final String? shopDescription;
+  final String? avatarPath;
 
   AuthUpdateProfileAndShopRequested({
     required this.name,
@@ -70,7 +71,14 @@ class AuthUpdateProfileAndShopRequested extends AuthEvent {
     this.shopName,
     this.shopPhone,
     this.shopDescription,
+    this.avatarPath,
   });
+}
+
+class AuthUpdateAvatarRequested extends AuthEvent {
+  final dynamic avatar;
+
+  AuthUpdateAvatarRequested({required this.avatar});
 }
 
 class AuthUpdateAddressRequested extends AuthEvent {

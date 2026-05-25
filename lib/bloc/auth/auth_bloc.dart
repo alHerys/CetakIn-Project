@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'auth_event.dart';
@@ -12,6 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterPartnerRequested>(_onRegisterPartnerRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthUpdateProfileAndShopRequested>(_onUpdateProfileAndShopRequested);
+    on<AuthUpdateAvatarRequested>(_onUpdateAvatarRequested);
     on<AuthUpdateAddressRequested>(_onUpdateAddressRequested);
     on<AuthRefreshUserRequested>(_onRefreshUserRequested);
   }
@@ -22,9 +24,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await _authRepository.login(event.email, event.password);
-    result.fold(
-      (failure) => emit(AuthFailure(failure)),
-      (response) => emit(AuthSuccess(user: response.user, token: response.token)),
+    await result.fold(
+      (failure) async => emit(AuthFailure(failure)),
+      (response) async {
+        // Fetch full user data (with shop) after login
+        final meResult = await _authRepository.getMe();
+        meResult.fold(
+          (_) => emit(AuthSuccess(user: response.user, token: response.token)),
+          (user) => emit(AuthSuccess(user: user, token: response.token)),
+        );
+      },
     );
   }
 
@@ -103,6 +112,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
       },
       (_) async {
+        if (event.avatarPath != null) {
+          try {
+            final multipartFile = await MultipartFile.fromFile(event.avatarPath!);
+            final avatarResult = await _authRepository.updateAvatar(multipartFile);
+            if (avatarResult.isLeft()) {
+               final failure = avatarResult.fold((l) => l, (r) => '');
+               emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+               return; 
+            }
+          } catch (e) {
+            emit(AuthUpdateFailure(error: e.toString(), user: currentState.user, token: currentState.token));
+            return;
+          }
+        }
+
         if (currentState.user.role == 'partner') {
           final shopResult = await _authRepository.updateShop(
             shopName: event.shopName,
@@ -119,6 +143,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await _fetchMeAndEmitSuccess(emit, currentState.token, 'Profile updated successfully');
         }
       },
+    );
+  }
+
+  Future<void> _onUpdateAvatarRequested(
+    AuthUpdateAvatarRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthSuccess) return;
+
+    emit(AuthUpdateLoading(user: currentState.user, token: currentState.token));
+
+    final result = await _authRepository.updateAvatar(event.avatar);
+    result.fold(
+      (failure) => emit(AuthUpdateFailure(error: failure, user: currentState.user, token: currentState.token)),
+      (user) => emit(AuthUpdateSuccess(message: 'Avatar updated successfully', user: user, token: currentState.token)),
     );
   }
 
