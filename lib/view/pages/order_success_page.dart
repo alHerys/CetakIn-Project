@@ -63,10 +63,10 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> with SingleTickerPr
     final imagePath = await File(p.join(directory.path, 'Println_Receipt_${widget.order.id.substring(0, 8)}.png')).create();
     await imagePath.writeAsBytes(image);
 
-    await Share.shareXFiles(
-      [XFile(imagePath.path)],
+    await SharePlus.instance.share(ShareParams(
+      files: [XFile(imagePath.path)],
       text: 'Bukti Pemesanan Cetak - Println',
-    );
+    ));
   }
 
   @override

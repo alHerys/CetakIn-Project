@@ -10,6 +10,7 @@ import '../pages/edit_shop_hours_page.dart';
 import '../pages/edit_address_page.dart';
 import '../pages/edit_shop_info_page.dart';
 import '../pages/partner_orders_page.dart';
+import '../pages/partner_atk_catalog_page.dart';
 
 class PartnerHomeBody extends StatefulWidget {
   const PartnerHomeBody({super.key});
@@ -133,8 +134,10 @@ class _PartnerHomeBodyState extends State<PartnerHomeBody> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildStatusBanner(status, shop?.rejectionReason),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       _buildShopInfoCard(shop),
+                      const SizedBox(height: 24),
+                      _buildProfileChecklist(shop),
                       const SizedBox(height: 24),
                       const Text(
                         'Pengaturan Toko',
@@ -167,6 +170,19 @@ class _PartnerHomeBodyState extends State<PartnerHomeBody> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const EditShopHoursPage()),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionCard(
+                        context,
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Katalog ATK',
+                        subtitle: 'Kelola produk alat tulis yang dijual',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const PartnerAtkCatalogPage()),
                           );
                         },
                       ),
@@ -399,6 +415,89 @@ class _PartnerHomeBodyState extends State<PartnerHomeBody> {
           ],
         ),
       ),
+    );
+  }
+  Widget _buildProfileChecklist(dynamic shop) {
+    final bool hasLocation = shop?.latitude != null && shop?.longitude != null;
+    final bool hasBasicInfo = shop?.shopName != null && shop?.shopName!.isNotEmpty == true && shop?.shopPhone != null && shop?.shopPhone!.isNotEmpty == true;
+    final bool hasHours = shop?.openTime != null && shop?.closeTime != null && shop?.operatingDays != null && shop!.operatingDays!.isNotEmpty;
+
+    final bool isAllComplete = hasLocation && hasBasicInfo && hasHours;
+
+    if (isAllComplete) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Data profil toko sudah lengkap.',
+                style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.red),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Lengkapi Data Toko Anda',
+                  style: TextStyle(color: Colors.red[800], fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildChecklistItem('Informasi Dasar (Nama, No HP)', hasBasicInfo),
+          const SizedBox(height: 8),
+          _buildChecklistItem('Jam & Hari Operasional', hasHours),
+          const SizedBox(height: 8),
+          _buildChecklistItem('Koordinat Peta Lokasi (Wajib)', hasLocation),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChecklistItem(String label, bool isComplete) {
+    return Row(
+      children: [
+        Icon(
+          isComplete ? Icons.check_circle : Icons.cancel,
+          color: isComplete ? Colors.green : Colors.red,
+          size: 16,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: isComplete ? AppColors.textPrimary : Colors.red[800],
+            fontSize: 13,
+            fontWeight: isComplete ? FontWeight.normal : FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

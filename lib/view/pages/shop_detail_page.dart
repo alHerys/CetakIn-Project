@@ -5,7 +5,13 @@ import '../../bloc/discovery/shop_detail_event.dart';
 import '../../bloc/discovery/shop_detail_state.dart';
 import '../../data/models/shop/shop_model.dart';
 import '../core/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/services/dio_client.dart';
+import '../../data/models/atk/atk_product_model.dart';
+import 'atk_shop_catalog_page.dart';
+import 'atk_product_detail_page.dart';
 import 'print_checkout_page.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ShopDetailPage extends StatefulWidget {
   final String shopId;
@@ -17,10 +23,65 @@ class ShopDetailPage extends StatefulWidget {
 }
 
 class _ShopDetailPageState extends State<ShopDetailPage> {
+  double? _userLat;
+  double? _userLng;
+
   @override
   void initState() {
     super.initState();
     context.read<ShopDetailBloc>().add(ShopDetailLoadRequested(widget.shopId));
+    _loadUserLocation();
+  }
+
+  Future<void> _loadUserLocation() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lat = prefs.getDouble('user_home_lat');
+    final lng = prefs.getDouble('user_home_lng');
+    if (lat != null && lng != null) {
+      if (mounted) {
+        setState(() {
+          _userLat = lat;
+          _userLng = lng;
+        });
+      }
+    } else {
+      try {
+        final pos = await Geolocator.getLastKnownPosition();
+        if (pos != null && mounted) {
+          setState(() {
+            _userLat = pos.latitude;
+            _userLng = pos.longitude;
+          });
+        }
+      } catch (_) {}
+    }
+  }
+
+  bool _isShopOpen(ShopModel shop) {
+    if (shop.openTime == null || shop.closeTime == null || shop.operatingDays == null) return false;
+    
+    final now = DateTime.now();
+    final List<String> days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    final currentDay = days[now.weekday - 1];
+    
+    if (!shop.operatingDays!.contains(currentDay)) return false;
+    
+    try {
+      final openParts = shop.openTime!.split(':');
+      final closeParts = shop.closeTime!.split(':');
+      final openHour = int.parse(openParts[0]);
+      final openMin = int.parse(openParts[1]);
+      final closeHour = int.parse(closeParts[0]);
+      final closeMin = int.parse(closeParts[1]);
+      
+      final currentMins = now.hour * 60 + now.minute;
+      final openMins = openHour * 60 + openMin;
+      final closeMins = closeHour * 60 + closeMin;
+      
+      return currentMins >= openMins && currentMins <= closeMins;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -62,6 +123,8 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                     const SizedBox(height: 24),
                     _buildDaftarHarga(shop),
                     const SizedBox(height: 24),
+                    _buildAtkPreview(shop),
+                    const SizedBox(height: 24),
                     _buildUlasan(shop),
                     const SizedBox(height: 100), // padding for bottom bar
                   ],
@@ -81,6 +144,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
+      centerTitle: false,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 20),
         onPressed: () => Navigator.pop(context),
@@ -93,17 +157,6 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      actions: [
-        // TODO: (Share/Favorite) Implement share and favorite actions
-        IconButton(
-          icon: const Icon(Icons.share_outlined, color: AppColors.primary, size: 20),
-          onPressed: () {},
-        ),
-        IconButton(
-          icon: const Icon(Icons.favorite_border_outlined, color: AppColors.primary, size: 20),
-          onPressed: () {},
-        ),
-      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -193,17 +246,25 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   }
 
   Widget _buildStatsRow(ShopModel shop) {
-    // TODO: (Dynamic Store Hours) Calculate real status (Buka/Tutup) and Estimation based on load
-    final String statusLine1 = 'Buka';
+    final isOpen = _isShopOpen(shop);
+    final String statusLine1 = isOpen ? 'Buka' : 'Tutup';
     final String statusLine2 = 'Sekarang';
-    final String estimasi = '15-30 Menit';
+    final Color statusColor = isOpen ? AppColors.success : Colors.red;
+
+    final String estimasi = '10-15 Menit';
+
+    double distanceKm = shop.distanceKm ?? 0.0;
+    if ((distanceKm == 0.0 || shop.distanceKm == null) && _userLat != null && _userLng != null && shop.latitude != null && shop.longitude != null) {
+      final distanceMeters = Geolocator.distanceBetween(_userLat!, _userLng!, shop.latitude!, shop.longitude!);
+      distanceKm = distanceMeters / 1000;
+    }
 
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             icon: Icons.access_time,
-            title: 'Estimasi',
+            title: 'Waktu Proses',
             value: estimasi,
             valueColor: AppColors.textHeading,
           ),
@@ -214,7 +275,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
             icon: Icons.store_mall_directory_outlined,
             title: 'Status',
             value: '$statusLine1\n$statusLine2',
-            valueColor: AppColors.success,
+            valueColor: statusColor,
           ),
         ),
         const SizedBox(width: 8),
@@ -222,7 +283,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
           child: _buildStatCard(
             icon: Icons.location_on_outlined,
             title: 'Jarak',
-            value: '${(shop.distanceKm ?? 0.0).toStringAsFixed(1)} km',
+            value: '${distanceKm.toStringAsFixed(1)} km',
             valueColor: AppColors.textHeading,
           ),
         ),
@@ -467,6 +528,140 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAtkPreview(ShopModel shop) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Alat Tulis (ATK)',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textHeading,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AtkShopCatalogPage(shop: shop)),
+                );
+              },
+              child: const Text(
+                'Lihat Semua',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        FutureBuilder<List<AtkProductModel>>(
+          future: _fetchAtkPreview(shop.id!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Text('Gagal memuat ATK: ${snapshot.error}');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Text('Toko ini belum menjual produk ATK.', style: TextStyle(color: AppColors.textSubtitle));
+            }
+            
+            final products = snapshot.data!;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return _buildAtkCardPreview(product, shop);
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<List<AtkProductModel>> _fetchAtkPreview(String shopId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final dioClient = DioClient(prefs);
+    final response = await dioClient.dio.get('shops/$shopId/atk');
+    final data = response.data['data'] as List;
+    final products = data.map((json) => AtkProductModel.fromJson(json)).toList();
+    return products.take(2).toList();
+  }
+
+  Widget _buildAtkCardPreview(AtkProductModel product, ShopModel shop) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AtkProductDetailPage(product: product, shop: shop)),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(color: AppColors.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: product.photoUrl != null
+                    ? Image.network(product.photoUrl!, fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) => Container(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          child: const Icon(Icons.inventory_2, color: AppColors.primary),
+                        ))
+                    : Container(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        child: const Icon(Icons.inventory_2, color: AppColors.primary),
+                      ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? 'Tanpa Nama',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textHeading),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rp ${product.price ?? 0}',
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,7 +8,6 @@ import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import 'edit_profile_page.dart';
 import 'edit_address_page.dart';
-import 'edit_shop_setup_page.dart';
 import 'login_page.dart';
 import 'customer_order_history_page.dart';
 
@@ -28,7 +27,7 @@ class ProfilePage extends StatelessWidget {
             backgroundColor: AppColors.background,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
-              elevation: 0,
+              systemOverlayStyle: .dark,
               title: const Text(
                 'Profile',
                 style: TextStyle(
@@ -154,7 +153,7 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildProfileItem(
                         icon: Icons.person_outline,
-                        title: isPartner ? 'Edit Shop Info' : 'Edit Profile',
+                        title: "Edit Profil",
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -162,20 +161,9 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (isPartner)
-                        _buildProfileItem(
-                          icon: Icons.settings_suggest_outlined,
-                          title: 'Shop Services & Pricing',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditShopSetupPage(),
-                            ),
-                          ),
-                        ),
                       _buildProfileItem(
                         icon: Icons.location_on_outlined,
-                        title: 'Edit Address',
+                        title: 'Edit Alamat',
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -185,7 +173,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       _buildProfileItem(
                         icon: Icons.lock_outline,
-                        title: 'Change Password',
+                        title: 'Ubah Kata Sandi',
                         onTap: () {
                           // TODO: Implement Change Password
                         },
@@ -204,33 +192,6 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 24),
                     ],
 
-                    // General Section
-                    const Text(
-                      'General',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textHeading,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileItem(
-                      icon: Icons.notifications_none,
-                      title: 'Notifications',
-                      onTap: () {},
-                    ),
-                    _buildProfileItem(
-                      icon: Icons.help_outline,
-                      title: 'Help Center',
-                      onTap: () {},
-                    ),
-                    _buildProfileItem(
-                      icon: Icons.info_outline,
-                      title: 'About Us',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 32),
-
                     // Logout Button
                     ElevatedButton(
                       onPressed: () => _handleLogout(context),
@@ -245,7 +206,7 @@ class ProfilePage extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: const Text(
-                        'Logout',
+                        'Keluar',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
