@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../data/models/order/print_order_model.dart';
 import '../core/colors.dart';
+import 'write_review_page.dart';
 
 class OrderSuccessPage extends StatefulWidget {
   final PrintOrderModel order;
@@ -21,6 +22,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> with SingleTickerPr
   late Animation<double> _scaleAnimation;
   late Animation<double> _checkAnimation;
   final ScreenshotController _screenshotController = ScreenshotController();
+  bool _hasReviewed = false;
 
   @override
   void initState() {
@@ -147,6 +149,74 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> with SingleTickerPr
                     ),
                   ],
                 ),
+                
+                if (widget.order.status == 'completed') ...[
+                  const SizedBox(height: 16),
+                  if (widget.order.review != null || _hasReviewed)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.amber.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 32),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.order.review != null 
+                              ? 'Anda memberikan bintang ${widget.order.review!.rating}' 
+                              : 'Terima kasih atas ulasan Anda!',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                            ),
+                          ),
+                          if (widget.order.review?.comment != null && widget.order.review!.comment!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                '"${widget.order.review!.comment!}"',
+                                style: const TextStyle(fontStyle: FontStyle.italic, color: AppColors.textSubtitle),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WriteReviewPage(
+                                orderId: widget.order.id,
+                                orderType: 'print',
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            setState(() {
+                              _hasReviewed = true;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.star_outline),
+                        label: const Text('Beri Ulasan & Nilai'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),

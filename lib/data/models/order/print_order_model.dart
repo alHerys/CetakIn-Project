@@ -1,5 +1,6 @@
 import '../auth/user_model.dart';
 import '../shop/shop_model.dart';
+import '../review/review_model.dart';
 
 class PrintOrderModel {
   final String id;
@@ -18,6 +19,7 @@ class PrintOrderModel {
   final String createdAt;
   final UserModel? user;
   final ShopModel? shop;
+  final ReviewModel? review;
 
   PrintOrderModel({
     required this.id,
@@ -36,6 +38,7 @@ class PrintOrderModel {
     required this.createdAt,
     this.user,
     this.shop,
+    this.review,
   });
 
   factory PrintOrderModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +59,7 @@ class PrintOrderModel {
       createdAt: json['created_at'] as String,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       shop: json['shop'] != null ? ShopModel.fromJson(json['shop']) : null,
+      review: json['review'] != null ? ReviewModel.fromJson(json['review']) : null,
     );
   }
 
@@ -77,6 +81,7 @@ class PrintOrderModel {
       'created_at': createdAt,
       'user': user?.toJson(),
       'shop': shop?.toJson(),
+      'review': review?.toJson(),
     };
   }
 }

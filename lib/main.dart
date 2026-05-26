@@ -35,6 +35,10 @@ import 'data/repositories/atk_order_repository.dart';
 import 'bloc/order/customer_atk/customer_atk_order_bloc.dart';
 import 'bloc/order/partner_atk/partner_atk_order_bloc.dart';
 
+import 'data/repositories/review_repository.dart';
+import 'bloc/review/submit_review_bloc.dart';
+import 'bloc/review/shop_reviews_bloc.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
@@ -56,6 +60,7 @@ void main() async {
   
   final adminService = AdminService(dioClient);
   final adminRepository = AdminRepository(adminService);
+  final reviewRepository = ReviewRepository(dio: dioClient.dio, authRepository: authRepository);
 
   runApp(
     MultiRepositoryProvider(
@@ -80,6 +85,9 @@ void main() async {
         ),
         RepositoryProvider<AtkOrderRepository>(
           create: (context) => atkOrderRepository,
+        ),
+        RepositoryProvider<ReviewRepository>(
+          create: (context) => reviewRepository,
         ),
       ],
       child: MultiBlocProvider(
@@ -116,6 +124,12 @@ void main() async {
           ),
           BlocProvider<PartnerAtkOrderBloc>(
             create: (context) => PartnerAtkOrderBloc(atkOrderRepository),
+          ),
+          BlocProvider<SubmitReviewBloc>(
+            create: (context) => SubmitReviewBloc(reviewRepository: reviewRepository),
+          ),
+          BlocProvider<ShopReviewsBloc>(
+            create: (context) => ShopReviewsBloc(reviewRepository: reviewRepository),
           ),
         ],
         child: const MyApp(),

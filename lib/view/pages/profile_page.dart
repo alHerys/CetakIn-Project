@@ -171,24 +171,6 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _buildProfileItem(
-                        icon: Icons.lock_outline,
-                        title: 'Ubah Kata Sandi',
-                        onTap: () {
-                          // TODO: Implement Change Password
-                        },
-                      ),
-                      if (user.role == 'user')
-                        _buildProfileItem(
-                          icon: Icons.history,
-                          title: 'Riwayat Pesanan',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CustomerOrdersPage(),
-                            ),
-                          ),
-                        ),
                       const SizedBox(height: 24),
                     ],
 

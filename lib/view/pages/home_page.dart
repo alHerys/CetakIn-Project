@@ -367,16 +367,6 @@ class _HomePageState extends State<HomePage> {
             letterSpacing: -0.55,
           ),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.primary,
-              size: 24,
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

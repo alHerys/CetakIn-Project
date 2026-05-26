@@ -1,6 +1,7 @@
 import '../shop/shop_model.dart';
 import '../auth/user_model.dart';
 import '../atk/atk_product_model.dart';
+import '../review/review_model.dart';
 
 class AtkOrderItemModel {
   final String? id;
@@ -59,6 +60,7 @@ class AtkOrderModel {
   final ShopModel? shop;
   final UserModel? user;
   final List<AtkOrderItemModel>? items;
+  final ReviewModel? review;
 
   AtkOrderModel({
     required this.id,
@@ -71,6 +73,7 @@ class AtkOrderModel {
     this.shop,
     this.user,
     this.items,
+    this.review,
   });
 
   factory AtkOrderModel.fromJson(Map<String, dynamic> json) {
@@ -87,6 +90,7 @@ class AtkOrderModel {
       items: json['items'] != null
           ? (json['items'] as List).map((e) => AtkOrderItemModel.fromJson(e as Map<String, dynamic>)).toList()
           : null,
+      review: json['review'] != null ? ReviewModel.fromJson(json['review']) : null,
     );
   }
 
@@ -101,5 +105,6 @@ class AtkOrderModel {
     'shop': shop?.toJson(),
     'user': user?.toJson(),
     'items': items?.map((e) => e.toJson()).toList(),
+    'review': review?.toJson(),
   };
 }

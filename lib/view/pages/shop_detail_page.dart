@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/discovery/shop_detail_bloc.dart';
 import '../../bloc/discovery/shop_detail_event.dart';
 import '../../bloc/discovery/shop_detail_state.dart';
+import '../../bloc/review/shop_reviews_bloc.dart';
+import '../../bloc/review/shop_reviews_event.dart';
+import '../../bloc/review/shop_reviews_state.dart';
 import '../../data/models/shop/shop_model.dart';
 import '../core/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +13,7 @@ import '../../data/services/dio_client.dart';
 import '../../data/models/atk/atk_product_model.dart';
 import 'atk_shop_catalog_page.dart';
 import 'atk_product_detail_page.dart';
+import 'shop_reviews_page.dart';
 import 'print_checkout_page.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -30,6 +34,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   void initState() {
     super.initState();
     context.read<ShopDetailBloc>().add(ShopDetailLoadRequested(widget.shopId));
+    context.read<ShopReviewsBloc>().add(ShopReviewsLoadRequested(widget.shopId));
     _loadUserLocation();
   }
 
@@ -565,7 +570,6 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
         FutureBuilder<List<AtkProductModel>>(
           future: _fetchAtkPreview(shop.id!),
           builder: (context, snapshot) {
@@ -694,29 +698,71 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                   ),
                 ),
               ],
-            ),
+            )
           ],
         ),
         const SizedBox(height: 16),
-        // TODO: (Review System) Fetch and map real reviews from backend
-        _buildReviewItem('AN', 'Adit Nugroho', '2 hari yang lalu', 'Hasil print sangat jernih dan pengerjaan cepat banget. Rekomen buat yang butuh mendadak!'),
-        const SizedBox(height: 8),
-        _buildReviewItem('SR', 'Siska Rahma', 'Seminggu yang lalu', 'Langganan di sini karena harganya paling kompetitif di sekitar kampus. Staff ramah.', bgColor: Colors.greenAccent, color: Colors.green),
-        const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Tampilkan ulasan lainnya',
-              style: TextStyle(fontSize: 16, color: AppColors.primary),
-            ),
-          ),
+        BlocBuilder<ShopReviewsBloc, ShopReviewsState>(
+          builder: (context, state) {
+            if (state is ShopReviewsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ShopReviewsFailure) {
+              return Text('Gagal memuat ulasan: ${state.error}', style: const TextStyle(color: Colors.red));
+            } else if (state is ShopReviewsLoaded) {
+              final reviews = state.reviews;
+              if (reviews.isEmpty) {
+                return const Text('Toko ini belum memiliki ulasan.', style: TextStyle(color: AppColors.textSubtitle));
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...reviews.take(2).map((review) {
+                    String initials = 'NN';
+                    if (review.user != null && review.user!.name != null && review.user!.name!.length >= 2) {
+                      initials = review.user!.name!.substring(0, 2).toUpperCase();
+                    } else if (review.user != null && review.user!.name != null && review.user!.name!.isNotEmpty) {
+                      initials = review.user!.name!.substring(0, 1).toUpperCase();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: _buildReviewItem(
+                        initials,
+                        review.user?.name ?? 'Anonim',
+                        review.createdAt.substring(0, 10),
+                        review.comment ?? 'Tidak ada komentar',
+                        review.rating,
+                      ),
+                    );
+                  }),
+                  if (reviews.length > 2) ...[
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => ShopReviewsPage(shop: shop)),
+                          );
+                        },
+                        child: const Text(
+                          'Tampilkan semua ulasan',
+                          style: TextStyle(fontSize: 16, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            }
+            return const SizedBox();
+          },
         ),
       ],
     );
   }
 
-  Widget _buildReviewItem(String initials, String name, String date, String content, {Color bgColor = AppColors.primary, Color color = Colors.white}) {
+  Widget _buildReviewItem(String initials, String name, String date, String content, int rating, {Color bgColor = AppColors.primary, Color color = Colors.white}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -753,7 +799,11 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                 ),
               ),
               Row(
-                children: List.generate(5, (index) => const Icon(Icons.star, size: 12, color: AppColors.warning)),
+                children: List.generate(5, (index) => Icon(
+                  index < rating ? Icons.star : Icons.star_border, 
+                  size: 14, 
+                  color: AppColors.warning
+                )),
               ),
             ],
           ),
