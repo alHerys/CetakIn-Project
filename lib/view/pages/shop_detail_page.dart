@@ -5,6 +5,7 @@ import '../../bloc/discovery/shop_detail_event.dart';
 import '../../bloc/discovery/shop_detail_state.dart';
 import '../../data/models/shop/shop_model.dart';
 import '../core/colors.dart';
+import 'print_checkout_page.dart';
 
 class ShopDetailPage extends StatefulWidget {
   final String shopId;
@@ -603,7 +604,14 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
               flex: 2,
               child: ElevatedButton(
                 // TODO: (Order Flow) Navigate to checkout/order page
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PrintCheckoutPage(shopId: shop.id!),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,

@@ -9,6 +9,7 @@ import '../pages/edit_shop_setup_page.dart';
 import '../pages/edit_shop_hours_page.dart';
 import '../pages/edit_address_page.dart';
 import '../pages/edit_shop_info_page.dart';
+import '../pages/partner_orders_page.dart';
 
 class PartnerHomeBody extends StatefulWidget {
   const PartnerHomeBody({super.key});
@@ -192,6 +193,19 @@ class _PartnerHomeBodyState extends State<PartnerHomeBody> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const EditAddressPage()),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionCard(
+                        context,
+                        icon: Icons.receipt_long,
+                        title: 'Pesanan Masuk',
+                        subtitle: 'Kelola pesanan print dari pelanggan',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const PartnerOrdersPage()),
                           );
                         },
                       ),

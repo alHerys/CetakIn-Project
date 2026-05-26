@@ -10,6 +10,7 @@ import 'edit_profile_page.dart';
 import 'edit_address_page.dart';
 import 'edit_shop_setup_page.dart';
 import 'login_page.dart';
+import 'customer_order_history_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -189,6 +190,17 @@ class ProfilePage extends StatelessWidget {
                           // TODO: Implement Change Password
                         },
                       ),
+                      if (user.role == 'user')
+                        _buildProfileItem(
+                          icon: Icons.history,
+                          title: 'Riwayat Pesanan',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CustomerOrdersPage(),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 24),
                     ],
 

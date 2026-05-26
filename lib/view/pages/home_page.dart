@@ -10,6 +10,8 @@ import '../widgets/admin_home_body.dart';
 import '../widgets/partner_home_body.dart';
 import '../widgets/shop_card_widget.dart';
 import 'profile_page.dart';
+import 'partner_orders_page.dart';
+import 'customer_order_history_page.dart';
 import 'location_picker_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -26,13 +28,6 @@ class _HomePageState extends State<HomePage> {
   int _selectedCategory = 0;
   int _selectedNavIndex = 0;
   final SearchController _searchController = SearchController();
-
-  final List<String> _categories = [
-    'Semua',
-    'Digital Printing',
-    'Fotocopy',
-    'Stationery',
-  ];
 
   String _locationName = 'Mencari lokasi...';
   double? _currentLat;
@@ -202,12 +197,12 @@ class _HomePageState extends State<HomePage> {
                   : user.role == 'partner'
                       ? [
                           _buildPartnerHomeBody(),
-                          const Center(child: Text('Partner Orders (Coming Soon)')),
+                          const PartnerOrdersPage(),
                           const ProfilePage(),
                         ]
                       : [
                           _buildHomeBody(context),
-                          const Center(child: Text('Orders Page (Coming Soon)')),
+                          const CustomerOrdersPage(),
                           const Center(child: Text('Shop Page (Coming Soon)')),
                           const ProfilePage(),
                         ],
@@ -267,7 +262,10 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         setState(() => _selectedNavIndex = index);
         if (index == 0) {
-          _enforceGps();
+          final profileState = context.read<ProfileBloc>().state;
+          if (profileState is ProfileLoaded && profileState.user.role == 'user') {
+            _enforceGps();
+          }
         }
       },
       child: Column(
@@ -465,46 +463,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(_categories.length, (index) {
-                    final bool isSelected = _selectedCategory == index;
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        right: index < _categories.length - 1 ? 8 : 0,
-                      ),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedCategory = index),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(9999),
-                            border: Border.all(
-                              color: isSelected ? AppColors.primary : AppColors.border,
-                            ),
-                          ),
-                          child: Text(
-                            _categories[index],
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
-                              letterSpacing: 0.14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

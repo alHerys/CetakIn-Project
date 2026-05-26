@@ -21,6 +21,11 @@ import 'data/services/discovery/discovery_service.dart';
 import 'view/core/colors.dart';
 import 'view/pages/login_page.dart';
 
+import 'data/services/order/print_order_service.dart';
+import 'data/repositories/print_order_repository.dart';
+import 'bloc/order/customer/customer_order_bloc.dart';
+import 'bloc/order/partner/partner_order_bloc.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
@@ -30,9 +35,12 @@ void main() async {
   final profileService = ProfileService(dioClient);
   final shopService = ShopService(dioClient);
   final discoveryService = DiscoveryService(dioClient);
+  final printOrderService = PrintOrderService(dioClient);
+  
   final authRepository = AuthRepository(authService, prefs);
   final profileRepository = ProfileRepository(profileService, shopService);
   final discoveryRepository = DiscoveryRepository(discoveryService);
+  final printOrderRepository = PrintOrderRepository(printOrderService);
   
   final adminService = AdminService(dioClient);
   final adminRepository = AdminRepository(adminService);
@@ -52,6 +60,9 @@ void main() async {
         RepositoryProvider<DiscoveryRepository>(
           create: (context) => discoveryRepository,
         ),
+        RepositoryProvider<PrintOrderRepository>(
+          create: (context) => printOrderRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -69,6 +80,12 @@ void main() async {
           ),
           BlocProvider<ShopDetailBloc>(
             create: (context) => ShopDetailBloc(discoveryRepository),
+          ),
+          BlocProvider<CustomerOrderBloc>(
+            create: (context) => CustomerOrderBloc(printOrderRepository),
+          ),
+          BlocProvider<PartnerOrderBloc>(
+            create: (context) => PartnerOrderBloc(printOrderRepository),
           ),
         ],
         child: const MyApp(),
