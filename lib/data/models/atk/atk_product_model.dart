@@ -8,7 +8,7 @@ class AtkProductModel {
   final int? price;
   final int? stock;
   final String? photoUrl;
-  final bool? isActive;
+  final bool? isAvailable;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   
@@ -22,7 +22,7 @@ class AtkProductModel {
     this.price,
     this.stock,
     this.photoUrl,
-    this.isActive,
+    this.isAvailable,
     this.createdAt,
     this.updatedAt,
     this.shop,
@@ -34,10 +34,10 @@ class AtkProductModel {
       shopId: json['shop_id'] as String?,
       name: json['name'] as String?,
       description: json['description'] as String?,
-      price: json['price'] as int?,
-      stock: json['stock'] as int?,
+      price: json['price'] != null ? int.tryParse(json['price'].toString()) : null,
+      stock: json['stock'] != null ? int.tryParse(json['stock'].toString()) : null,
       photoUrl: json['photo_url'] as String?,
-      isActive: json['is_active'] == 1 || json['is_active'] == true, // Handle tinyint boolean
+      isAvailable: json['is_available'] == 1 || json['is_available'] == true || json['is_available'] == '1',
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at']) : null,
       shop: json['shop'] != null ? ShopModel.fromJson(json['shop']) : null,
@@ -53,7 +53,7 @@ class AtkProductModel {
       'price': price,
       'stock': stock,
       'photo_url': photoUrl,
-      'is_active': isActive,
+      'is_available': isAvailable,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'shop': shop?.toJson(),

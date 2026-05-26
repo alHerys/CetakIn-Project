@@ -151,6 +151,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
             children: [
               TileLayer(
+                
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.println',
               ),
@@ -264,7 +265,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           // Current Location Button
           Positioned(
             right: 16,
-            bottom: 180,
+            bottom: 200,
             child: FloatingActionButton(
               heroTag: 'myLocationBtn',
               backgroundColor: Colors.white,
