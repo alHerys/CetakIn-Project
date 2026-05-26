@@ -12,6 +12,7 @@ import '../widgets/shop_card_widget.dart';
 import 'profile_page.dart';
 import 'partner_orders_page.dart';
 import 'customer_order_history_page.dart';
+import 'atk_marketplace_page.dart';
 import 'location_picker_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -25,7 +26,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedCategory = 0;
+
   int _selectedNavIndex = 0;
   final SearchController _searchController = SearchController();
 
@@ -203,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                       : [
                           _buildHomeBody(context),
                           const CustomerOrdersPage(),
-                          const Center(child: Text('Shop Page (Coming Soon)')),
+                          const AtkMarketplacePage(),
                           const ProfilePage(),
                         ],
             ),

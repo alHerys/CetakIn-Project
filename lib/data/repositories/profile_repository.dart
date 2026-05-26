@@ -5,6 +5,7 @@ import '../models/shop/shop_pricing_model.dart';
 import '../models/shop/shop_service_model.dart';
 import '../services/profile/profile_service.dart';
 import '../services/shop/shop_service.dart';
+import 'package:dio/dio.dart';
 
 class ProfileRepository {
   final ProfileService _profileService;
@@ -65,6 +66,13 @@ class ProfileRepository {
     dynamic shopPhoto,
   }) async {
     try {
+      MultipartFile? file;
+      if (shopPhoto is String) {
+        file = await MultipartFile.fromFile(shopPhoto);
+      } else if (shopPhoto is MultipartFile) {
+        file = shopPhoto;
+      }
+
       final shop = await _shopService.updateShop(
         shopName: shopName,
         shopAddress: shopAddress,
@@ -75,7 +83,7 @@ class ProfileRepository {
         openTime: openTime,
         closeTime: closeTime,
         operatingDays: operatingDays,
-        shopPhoto: shopPhoto,
+        shopPhoto: file,
       );
       return Right(shop);
     } catch (e) {

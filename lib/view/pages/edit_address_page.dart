@@ -104,7 +104,7 @@ class _EditAddressPageState extends State<EditAddressPage> {
               elevation: 0,
               leading: const BackButton(),
               title: const Text(
-                'Edit Address',
+                'Edit Alamat',
                 style: TextStyle(color: AppColors.textHeading),
               ),
             ),
@@ -115,21 +115,12 @@ class _EditAddressPageState extends State<EditAddressPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Address Information',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     AuthTextField(
                       controller: _addressController,
-                      labelText: isPartner ? 'Shop Address' : 'Home Address',
-                      hintText: 'Enter your full address',
+                      labelText: isPartner ? 'Nama Alamat Toko' : 'Nama Alamat Rumah',
+                      hintText: 'Masukkan alamat lengkap',
                       icon: Icons.location_on_outlined,
-                      validator: (val) => val == null || val.isEmpty ? 'Address is required' : null,
+                      validator: (val) => val == null || val.isEmpty ? 'Alamat diperlukan' : null,
                     ),
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
@@ -166,7 +157,7 @@ class _EditAddressPageState extends State<EditAddressPage> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Note: Make sure your address is accurate for better service.',
+                      'Catatan: Pastikan alamat anda akurat untuk memaksimalkan pelayanan',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -194,7 +185,7 @@ class _EditAddressPageState extends State<EditAddressPage> {
                               ),
                             )
                           : const Text(
-                              'Save Address',
+                              'Simpan Alamat',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

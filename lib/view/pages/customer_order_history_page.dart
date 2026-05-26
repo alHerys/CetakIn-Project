@@ -1,11 +1,18 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../bloc/order/customer/customer_order_bloc.dart';
 import '../../bloc/order/customer/customer_order_event.dart';
-import '../../bloc/order/customer/customer_order_state.dart';
+import '../../bloc/order/customer/customer_order_state.dart' as print_state;
+import '../../bloc/order/customer_atk/customer_atk_order_bloc.dart';
+import '../../bloc/order/customer_atk/customer_atk_order_event.dart' as atk_event;
+import '../../bloc/order/customer_atk/customer_atk_order_state.dart' as atk_state;
+
 import '../../data/models/order/print_order_model.dart';
 import '../core/colors.dart';
 import 'order_success_page.dart';
+import '../widgets/atk_order_card_widget.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
   const CustomerOrdersPage({super.key});
@@ -19,66 +26,82 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
   void initState() {
     super.initState();
     context.read<CustomerOrderBloc>().add(CustomerOrderLoadHistoryRequested());
+    context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: BlocBuilder<CustomerOrderBloc, CustomerOrderState>(
-        builder: (context, state) {
-          return CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              _buildSliverAppBar(),
-              _buildSliverFilter(state),
-              if (state is CustomerOrderLoading)
-                const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
-              else if (state is CustomerOrderFailure)
-                SliverFillRemaining(child: _buildErrorState(state.error))
-              else if (state is CustomerOrderLoaded)
-                state.orders.isEmpty
-                    ? SliverFillRemaining(child: _buildEmptyState(state.filterMode))
-                    : SliverPadding(
-                        padding: const EdgeInsets.all(20),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) => _buildOrderCard(state.orders[index]),
-                            childCount: state.orders.length,
-                          ),
-                        ),
-                      )
-              else
-                const SliverToBoxAdapter(child: SizedBox()),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Pesanan Saya',
+            style: TextStyle(color: AppColors.textHeading, fontWeight: FontWeight.bold),
+          ),
+          bottom: const TabBar(
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primary,
+            tabs: [
+              Tab(text: 'Cetak Dokumen'),
+              Tab(text: 'Alat Tulis Kantor'),
             ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar() {
-    return const SliverAppBar(
-      floating: true,
-      pinned: true,
-      expandedHeight: 120,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          'Pesanan Saya',
-          style: TextStyle(color: AppColors.textHeading, fontWeight: FontWeight.bold),
+          ),
         ),
-        centerTitle: false,
-        titlePadding: EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        body: const TabBarView(
+          children: [
+            _PrintOrdersTab(),
+            _AtkOrdersTab(),
+          ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildSliverFilter(CustomerOrderState state) {
-    CustomerOrderFilter currentFilter = CustomerOrderFilter.ongoing;
-    if (state is CustomerOrderLoaded) {
+class _PrintOrdersTab extends StatelessWidget {
+  const _PrintOrdersTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CustomerOrderBloc, print_state.CustomerOrderState>(
+      builder: (context, state) {
+        return CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _buildSliverFilter(context, state),
+            if (state is print_state.CustomerOrderLoading)
+              const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+            else if (state is print_state.CustomerOrderFailure)
+              SliverFillRemaining(child: _buildErrorState(context, state.error))
+            else if (state is print_state.CustomerOrderLoaded)
+              state.orders.isEmpty
+                  ? SliverFillRemaining(child: _buildEmptyState(state.filterMode == print_state.CustomerOrderFilter.ongoing))
+                  : SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => _buildOrderCard(context, state.orders[index]),
+                          childCount: state.orders.length,
+                        ),
+                      ),
+                    )
+            else
+              const SliverToBoxAdapter(child: SizedBox()),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSliverFilter(BuildContext context, print_state.CustomerOrderState state) {
+    print_state.CustomerOrderFilter currentFilter = print_state.CustomerOrderFilter.ongoing;
+    if (state is print_state.CustomerOrderLoaded) {
       currentFilter = state.filterMode;
     }
 
@@ -94,15 +117,17 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
             child: Row(
               children: [
                 _buildFilterChip(
+                  context: context,
                   label: 'Sedang Berjalan',
-                  isSelected: currentFilter == CustomerOrderFilter.ongoing,
-                  filter: CustomerOrderFilter.ongoing,
+                  isSelected: currentFilter == print_state.CustomerOrderFilter.ongoing,
+                  onTap: () => context.read<CustomerOrderBloc>().add(CustomerOrderFilterChanged(print_state.CustomerOrderFilter.ongoing)),
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip(
+                  context: context,
                   label: 'Selesai',
-                  isSelected: currentFilter == CustomerOrderFilter.finished,
-                  filter: CustomerOrderFilter.finished,
+                  isSelected: currentFilter == print_state.CustomerOrderFilter.finished,
+                  onTap: () => context.read<CustomerOrderBloc>().add(CustomerOrderFilterChanged(print_state.CustomerOrderFilter.finished)),
                 ),
               ],
             ),
@@ -112,31 +137,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
     );
   }
 
-  Widget _buildFilterChip({required String label, required bool isSelected, required CustomerOrderFilter filter}) {
-    return GestureDetector(
-      onTap: () {
-        context.read<CustomerOrderBloc>().add(CustomerOrderFilterChanged(filter));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.background,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderCard(PrintOrderModel order) {
+  Widget _buildOrderCard(BuildContext context, PrintOrderModel order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -304,24 +305,24 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
     );
   }
 
-  Widget _buildEmptyState(CustomerOrderFilter filter) {
+  Widget _buildEmptyState(bool isOngoing) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            filter == CustomerOrderFilter.ongoing ? Icons.receipt_long_outlined : Icons.history,
+            isOngoing ? Icons.receipt_long_outlined : Icons.history,
             size: 80,
             color: AppColors.textSubtitle.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
-            filter == CustomerOrderFilter.ongoing ? 'Tidak ada pesanan aktif' : 'Belum ada riwayat pesanan',
+            isOngoing ? 'Tidak ada pesanan aktif' : 'Belum ada riwayat pesanan',
             style: const TextStyle(color: AppColors.textSubtitle, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
-            filter == CustomerOrderFilter.ongoing ? 'Ayo mulai mencetak dokumenmu sekarang!' : 'Pesanan yang selesai akan tampil di sini',
+            isOngoing ? 'Ayo mulai mencetak dokumenmu sekarang!' : 'Pesanan yang selesai akan tampil di sini',
             style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
@@ -329,7 +330,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
     );
   }
 
-  Widget _buildErrorState(String error) {
+  Widget _buildErrorState(BuildContext context, String error) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -349,6 +350,155 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
       ),
     );
   }
+}
+
+class _AtkOrdersTab extends StatelessWidget {
+  const _AtkOrdersTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CustomerAtkOrderBloc, atk_state.CustomerAtkOrderState>(
+      builder: (context, state) {
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested());
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              _buildSliverBlurHeader(context, state),
+              if (state is atk_state.CustomerAtkOrderLoading)
+                const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+              else if (state is atk_state.CustomerAtkOrderFailure)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Gagal memuat pesanan ATK: ${state.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested()),
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (state is atk_state.CustomerAtkOrderLoaded)
+                state.orders.isEmpty
+                    ? SliverFillRemaining(
+                        child: Center(
+                          child: Text(
+                            state.filterMode == atk_event.CustomerAtkOrderFilter.ongoing
+                                ? 'Tidak ada pesanan ATK aktif.'
+                                : 'Belum ada riwayat pesanan ATK.',
+                            style: const TextStyle(color: AppColors.textSubtitle),
+                          ),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.all(20),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => AtkOrderCardWidget(
+                              order: state.orders[index],
+                              isPartner: false,
+                              onTap: () {
+                                // TODO: Navigate to ATK Order Success/Detail
+                              },
+                            ),
+                            childCount: state.orders.length,
+                          ),
+                        ),
+                      )
+              else
+                const SliverToBoxAdapter(child: SizedBox()),
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSliverBlurHeader(BuildContext context, atk_state.CustomerAtkOrderState state) {
+    atk_event.CustomerAtkOrderFilter currentFilter = atk_event.CustomerAtkOrderFilter.ongoing;
+    if (state is atk_state.CustomerAtkOrderLoaded) {
+      currentFilter = state.filterMode;
+    }
+
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: 120,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: FlexibleSpaceBar(
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.8)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
+              alignment: Alignment.bottomLeft,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip(
+                      context: context,
+                      label: 'Sedang Berjalan',
+                      isSelected: currentFilter == atk_event.CustomerAtkOrderFilter.ongoing,
+                      onTap: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderFilterChanged(atk_event.CustomerAtkOrderFilter.ongoing)),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(
+                      context: context,
+                      label: 'Selesai',
+                      isSelected: currentFilter == atk_event.CustomerAtkOrderFilter.finished,
+                      onTap: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderFilterChanged(atk_event.CustomerAtkOrderFilter.finished)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildFilterChip({
+  required BuildContext context,
+  required String label,
+  required bool isSelected,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primary : AppColors.background,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : AppColors.textSecondary,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    ),
+  );
 }
 
 class _SliverFilterDelegate extends SliverPersistentHeaderDelegate {
