@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -6,12 +5,15 @@ import '../../bloc/order/customer/customer_order_bloc.dart';
 import '../../bloc/order/customer/customer_order_event.dart';
 import '../../bloc/order/customer/customer_order_state.dart' as print_state;
 import '../../bloc/order/customer_atk/customer_atk_order_bloc.dart';
-import '../../bloc/order/customer_atk/customer_atk_order_event.dart' as atk_event;
-import '../../bloc/order/customer_atk/customer_atk_order_state.dart' as atk_state;
+import '../../bloc/order/customer_atk/customer_atk_order_event.dart'
+    as atk_event;
+import '../../bloc/order/customer_atk/customer_atk_order_state.dart'
+    as atk_state;
 
 import '../../data/models/order/print_order_model.dart';
 import '../core/colors.dart';
 import 'order_success_page.dart';
+import 'atk_order_success_page.dart';
 import '../widgets/atk_order_card_widget.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
@@ -26,7 +28,9 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
   void initState() {
     super.initState();
     context.read<CustomerOrderBloc>().add(CustomerOrderLoadHistoryRequested());
-    context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested());
+    context.read<CustomerAtkOrderBloc>().add(
+      atk_event.CustomerAtkOrderLoadHistoryRequested(),
+    );
   }
 
   @override
@@ -40,7 +44,10 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
           elevation: 0,
           title: const Text(
             'Pesanan Saya',
-            style: TextStyle(color: AppColors.textHeading, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppColors.textHeading,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           bottom: const TabBar(
             labelColor: AppColors.primary,
@@ -52,12 +59,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage> {
             ],
           ),
         ),
-        body: const TabBarView(
-          children: [
-            _PrintOrdersTab(),
-            _AtkOrdersTab(),
-          ],
-        ),
+        body: const TabBarView(children: [_PrintOrdersTab(), _AtkOrdersTab()]),
       ),
     );
   }
@@ -75,17 +77,25 @@ class _PrintOrdersTab extends StatelessWidget {
           slivers: [
             _buildSliverFilter(context, state),
             if (state is print_state.CustomerOrderLoading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
             else if (state is print_state.CustomerOrderFailure)
               SliverFillRemaining(child: _buildErrorState(context, state.error))
             else if (state is print_state.CustomerOrderLoaded)
               state.orders.isEmpty
-                  ? SliverFillRemaining(child: _buildEmptyState(state.filterMode == print_state.CustomerOrderFilter.ongoing))
+                  ? SliverFillRemaining(
+                      child: _buildEmptyState(
+                        state.filterMode ==
+                            print_state.CustomerOrderFilter.ongoing,
+                      ),
+                    )
                   : SliverPadding(
                       padding: const EdgeInsets.all(20),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildOrderCard(context, state.orders[index]),
+                          (context, index) =>
+                              _buildOrderCard(context, state.orders[index]),
                           childCount: state.orders.length,
                         ),
                       ),
@@ -99,8 +109,12 @@ class _PrintOrdersTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverFilter(BuildContext context, print_state.CustomerOrderState state) {
-    print_state.CustomerOrderFilter currentFilter = print_state.CustomerOrderFilter.ongoing;
+  Widget _buildSliverFilter(
+    BuildContext context,
+    print_state.CustomerOrderState state,
+  ) {
+    print_state.CustomerOrderFilter currentFilter =
+        print_state.CustomerOrderFilter.ongoing;
     if (state is print_state.CustomerOrderLoaded) {
       currentFilter = state.filterMode;
     }
@@ -119,15 +133,25 @@ class _PrintOrdersTab extends StatelessWidget {
                 _buildFilterChip(
                   context: context,
                   label: 'Sedang Berjalan',
-                  isSelected: currentFilter == print_state.CustomerOrderFilter.ongoing,
-                  onTap: () => context.read<CustomerOrderBloc>().add(CustomerOrderFilterChanged(print_state.CustomerOrderFilter.ongoing)),
+                  isSelected:
+                      currentFilter == print_state.CustomerOrderFilter.ongoing,
+                  onTap: () => context.read<CustomerOrderBloc>().add(
+                    CustomerOrderFilterChanged(
+                      print_state.CustomerOrderFilter.ongoing,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip(
                   context: context,
                   label: 'Selesai',
-                  isSelected: currentFilter == print_state.CustomerOrderFilter.finished,
-                  onTap: () => context.read<CustomerOrderBloc>().add(CustomerOrderFilterChanged(print_state.CustomerOrderFilter.finished)),
+                  isSelected:
+                      currentFilter == print_state.CustomerOrderFilter.finished,
+                  onTap: () => context.read<CustomerOrderBloc>().add(
+                    CustomerOrderFilterChanged(
+                      print_state.CustomerOrderFilter.finished,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -172,12 +196,20 @@ class _PrintOrdersTab extends StatelessWidget {
                   Expanded(
                     child: Row(
                       children: [
-                        const Icon(Icons.storefront, size: 18, color: AppColors.primary),
+                        const Icon(
+                          Icons.storefront,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             order.shop?.shopName ?? 'Mitra Println',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textHeading),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: AppColors.textHeading,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -200,7 +232,11 @@ class _PrintOrdersTab extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.picture_as_pdf, color: AppColors.primary, size: 28),
+                    child: const Icon(
+                      Icons.picture_as_pdf,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -209,12 +245,19 @@ class _PrintOrdersTab extends StatelessWidget {
                       children: [
                         Text(
                           '${order.copies} Salinan • ${order.totalPages} Halaman',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textHeading),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.textHeading,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${order.paperSize} • ${order.colorMode == 'full_color' ? 'Warna' : 'B/W'} • ${order.sides == 'double' ? 'Bolak Balik' : '1 Sisi'}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -230,23 +273,42 @@ class _PrintOrdersTab extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Pembayaran', style: TextStyle(color: AppColors.textSubtitle, fontSize: 11)),
+                      const Text(
+                        'Total Pembayaran',
+                        style: TextStyle(
+                          color: AppColors.textSubtitle,
+                          fontSize: 11,
+                        ),
+                      ),
                       Text(
                         'Rp ${order.finalPrice}',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.primary),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
                   if (order.status == 'pending')
                     TextButton(
                       onPressed: () {
-                        context.read<CustomerOrderBloc>().add(CustomerOrderCancelRequested(order.id));
+                        context.read<CustomerOrderBloc>().add(
+                          CustomerOrderCancelRequested(order.id),
+                        );
                       },
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Batalkan', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Batalkan',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     )
                   else
-                    const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                 ],
               ),
             ),
@@ -297,10 +359,17 @@ class _PrintOrdersTab extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Text(
         text,
-        style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -318,12 +387,21 @@ class _PrintOrdersTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             isOngoing ? 'Tidak ada pesanan aktif' : 'Belum ada riwayat pesanan',
-            style: const TextStyle(color: AppColors.textSubtitle, fontSize: 16, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: AppColors.textSubtitle,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            isOngoing ? 'Ayo mulai mencetak dokumenmu sekarang!' : 'Pesanan yang selesai akan tampil di sini',
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            isOngoing
+                ? 'Ayo mulai mencetak dokumenmu sekarang!'
+                : 'Pesanan yang selesai akan tampil di sini',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -342,7 +420,9 @@ class _PrintOrdersTab extends StatelessWidget {
             Text('Waduh! Ada masalah: $error', textAlign: TextAlign.center),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.read<CustomerOrderBloc>().add(CustomerOrderLoadHistoryRequested()),
+              onPressed: () => context.read<CustomerOrderBloc>().add(
+                CustomerOrderLoadHistoryRequested(),
+              ),
               child: const Text('Coba Lagi'),
             ),
           ],
@@ -361,14 +441,18 @@ class _AtkOrdersTab extends StatelessWidget {
       builder: (context, state) {
         return RefreshIndicator(
           onRefresh: () async {
-            context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested());
+            context.read<CustomerAtkOrderBloc>().add(
+              atk_event.CustomerAtkOrderLoadHistoryRequested(),
+            );
           },
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               _buildSliverBlurHeader(context, state),
               if (state is atk_state.CustomerAtkOrderLoading)
-                const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
               else if (state is atk_state.CustomerAtkOrderFailure)
                 SliverFillRemaining(
                   child: Center(
@@ -378,7 +462,10 @@ class _AtkOrdersTab extends StatelessWidget {
                         Text('Gagal memuat pesanan ATK: ${state.error}'),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderLoadHistoryRequested()),
+                          onPressed: () =>
+                              context.read<CustomerAtkOrderBloc>().add(
+                                atk_event.CustomerAtkOrderLoadHistoryRequested(),
+                              ),
                           child: const Text('Coba Lagi'),
                         ),
                       ],
@@ -390,10 +477,13 @@ class _AtkOrdersTab extends StatelessWidget {
                     ? SliverFillRemaining(
                         child: Center(
                           child: Text(
-                            state.filterMode == atk_event.CustomerAtkOrderFilter.ongoing
+                            state.filterMode ==
+                                    atk_event.CustomerAtkOrderFilter.ongoing
                                 ? 'Tidak ada pesanan ATK aktif.'
                                 : 'Belum ada riwayat pesanan ATK.',
-                            style: const TextStyle(color: AppColors.textSubtitle),
+                            style: const TextStyle(
+                              color: AppColors.textSubtitle,
+                            ),
                           ),
                         ),
                       )
@@ -405,7 +495,12 @@ class _AtkOrdersTab extends StatelessWidget {
                               order: state.orders[index],
                               isPartner: false,
                               onTap: () {
-                                // TODO: Navigate to ATK Order Success/Detail
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AtkOrderSuccessPage(order: state.orders[index]),
+                                  ),
+                                );
                               },
                             ),
                             childCount: state.orders.length,
@@ -422,52 +517,48 @@ class _AtkOrdersTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverBlurHeader(BuildContext context, atk_state.CustomerAtkOrderState state) {
-    atk_event.CustomerAtkOrderFilter currentFilter = atk_event.CustomerAtkOrderFilter.ongoing;
+  Widget _buildSliverBlurHeader(
+    BuildContext context,
+    atk_state.CustomerAtkOrderState state,
+  ) {
+    atk_event.CustomerAtkOrderFilter currentFilter =
+        atk_event.CustomerAtkOrderFilter.ongoing;
     if (state is atk_state.CustomerAtkOrderLoaded) {
       currentFilter = state.filterMode;
     }
 
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 120,
+      expandedHeight: 80,
       backgroundColor: Colors.transparent,
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.8)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
-              alignment: Alignment.bottomLeft,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildFilterChip(
-                      context: context,
-                      label: 'Sedang Berjalan',
-                      isSelected: currentFilter == atk_event.CustomerAtkOrderFilter.ongoing,
-                      onTap: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderFilterChanged(atk_event.CustomerAtkOrderFilter.ongoing)),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFilterChip(
-                      context: context,
-                      label: 'Selesai',
-                      isSelected: currentFilter == atk_event.CustomerAtkOrderFilter.finished,
-                      onTap: () => context.read<CustomerAtkOrderBloc>().add(atk_event.CustomerAtkOrderFilterChanged(atk_event.CustomerAtkOrderFilter.finished)),
-                    ),
-                  ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildFilterChip(
+              context: context,
+              label: 'Sedang Berjalan',
+              isSelected:
+                  currentFilter == atk_event.CustomerAtkOrderFilter.ongoing,
+              onTap: () => context.read<CustomerAtkOrderBloc>().add(
+                atk_event.CustomerAtkOrderFilterChanged(
+                  atk_event.CustomerAtkOrderFilter.ongoing,
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+            _buildFilterChip(
+              context: context,
+              label: 'Selesai',
+              isSelected:
+                  currentFilter == atk_event.CustomerAtkOrderFilter.finished,
+              onTap: () => context.read<CustomerAtkOrderBloc>().add(
+                atk_event.CustomerAtkOrderFilterChanged(
+                  atk_event.CustomerAtkOrderFilter.finished,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -487,7 +578,9 @@ Widget _buildFilterChip({
       decoration: BoxDecoration(
         color: isSelected ? AppColors.primary : AppColors.background,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+        border: Border.all(
+          color: isSelected ? AppColors.primary : AppColors.border,
+        ),
       ),
       child: Text(
         label,
@@ -512,7 +605,11 @@ class _SliverFilterDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 70;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return SizedBox.expand(child: child);
   }
 

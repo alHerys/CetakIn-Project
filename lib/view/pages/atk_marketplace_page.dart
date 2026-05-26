@@ -40,7 +40,12 @@ class _AtkMarketplacePageState extends State<AtkMarketplacePage> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAllProducts());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final discoveryState = context.read<DiscoveryBloc>().state;
+      if (discoveryState is DiscoveryLoaded) {
+        _loadAllProducts();
+      }
+    });
   }
 
   @override
@@ -109,10 +114,21 @@ class _AtkMarketplacePageState extends State<AtkMarketplacePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AtkCartBloc, AtkCartState>(
-      listener: (context, state) {
-        if (state is AtkCartConflict) _showConflictDialog(state);
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AtkCartBloc, AtkCartState>(
+          listener: (context, state) {
+            if (state is AtkCartConflict) _showConflictDialog(state);
+          },
+        ),
+        BlocListener<DiscoveryBloc, DiscoveryState>(
+          listener: (context, state) {
+            if (state is DiscoveryLoaded) {
+              _loadAllProducts();
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: RefreshIndicator(

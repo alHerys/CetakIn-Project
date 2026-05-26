@@ -18,10 +18,6 @@ class AtkOrderCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil item pertama sebagai perwakilan
-    final firstItem = order.items != null && order.items!.isNotEmpty ? order.items!.first : null;
-    final otherItemsCount = (order.items?.length ?? 1) - 1;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -76,76 +72,80 @@ class AtkOrderCardWidget extends StatelessWidget {
               ),
             ),
             const Divider(height: 1, color: AppColors.border),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: firstItem?.product?.photoUrl != null
-                        ? Image.network(
-                            firstItem!.product!.photoUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.category,
-                              color: AppColors.primary,
-                              size: 28,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.category,
-                            color: AppColors.primary,
-                            size: 28,
-                          ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
+            if (order.items != null && order.items!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView.separated(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: order.items!.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final item = order.items![index];
+                    return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          firstItem?.name ?? 'Produk ATK',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.textHeading,
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          clipBehavior: Clip.antiAlias,
+                          child: item.product?.photoUrl != null
+                              ? Image.network(
+                                  item.product!.photoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                    Icons.category,
+                                    color: AppColors.primary,
+                                    size: 24,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.category,
+                                  color: AppColors.primary,
+                                  size: 24,
+                                ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${firstItem?.quantity ?? 0} x Rp ${firstItem?.unitPrice ?? 0}',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                        if (otherItemsCount > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              '+$otherItemsCount produk lainnya',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.textHeading,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${item.quantity} x Rp ${item.unitPrice}',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
                       ],
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Data item tidak tersedia', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Row(
