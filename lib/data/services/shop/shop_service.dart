@@ -32,6 +32,8 @@ class ShopService {
     String? shopAddress,
     String? shopPhone,
     String? shopDescription,
+    double? latitude,
+    double? longitude,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -39,6 +41,8 @@ class ShopService {
       if (shopAddress != null) data['shop_address'] = shopAddress;
       if (shopPhone != null) data['shop_phone'] = shopPhone;
       if (shopDescription != null) data['shop_description'] = shopDescription;
+      if (latitude != null) data['latitude'] = latitude;
+      if (longitude != null) data['longitude'] = longitude;
       
       final response = await _dioClient.dio.put(
         'shops/me',

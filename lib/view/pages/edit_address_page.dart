@@ -5,6 +5,8 @@ import '../../bloc/profile/profile_event.dart';
 import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import '../widgets/auth_text_field.dart';
+import 'location_picker_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditAddressPage extends StatefulWidget {
   const EditAddressPage({super.key});
@@ -16,6 +18,8 @@ class EditAddressPage extends StatefulWidget {
 class _EditAddressPageState extends State<EditAddressPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _addressController;
+  double? _latitude;
+  double? _longitude;
 
   @override
   void initState() {
@@ -26,6 +30,24 @@ class _EditAddressPageState extends State<EditAddressPage> {
     _addressController = TextEditingController(
       text: user?.role == 'partner' ? user?.shop?.shopAddress : '',
     );
+    if (user?.role == 'partner') {
+      _latitude = user?.shop?.latitude;
+      _longitude = user?.shop?.longitude;
+    } else {
+      _loadLocalCustomerAddress();
+    }
+  }
+
+  Future<void> _loadLocalCustomerAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    final address = prefs.getString('user_home_address');
+    if (address != null && address.isNotEmpty) {
+      setState(() {
+        _addressController.text = address;
+        _latitude = prefs.getDouble('user_home_lat');
+        _longitude = prefs.getDouble('user_home_lng');
+      });
+    }
   }
 
   @override
@@ -34,11 +56,22 @@ class _EditAddressPageState extends State<EditAddressPage> {
     super.dispose();
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
+      final state = context.read<ProfileBloc>().state;
+      if (state is ProfileLoaded && state.user.role == 'user') {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_home_address', _addressController.text);
+        if (_latitude != null) await prefs.setDouble('user_home_lat', _latitude!);
+        if (_longitude != null) await prefs.setDouble('user_home_lng', _longitude!);
+      }
+
+      if (!mounted) return;
       context.read<ProfileBloc>().add(
             ProfileUpdateAddressRequested(
               address: _addressController.text,
+              latitude: _latitude,
+              longitude: _longitude,
             ),
           );
     }
@@ -97,6 +130,39 @@ class _EditAddressPageState extends State<EditAddressPage> {
                       hintText: 'Enter your full address',
                       icon: Icons.location_on_outlined,
                       validator: (val) => val == null || val.isEmpty ? 'Address is required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LocationPickerPage(
+                              initialLat: _latitude,
+                              initialLng: _longitude,
+                            ),
+                          ),
+                        );
+                        if (result != null && result is Map<String, dynamic>) {
+                          setState(() {
+                            _latitude = result['lat'];
+                            _longitude = result['lng'];
+                            _addressController.text = result['address'];
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.map, color: AppColors.primary),
+                      label: Text(
+                        _latitude != null ? 'Ubah dari Peta' : 'Pilih dari Peta',
+                        style: const TextStyle(color: AppColors.primary),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     const Text(

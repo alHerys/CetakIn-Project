@@ -37,8 +37,14 @@ class ProfileUpdateAvatarRequested extends ProfileEvent {
 
 class ProfileUpdateAddressRequested extends ProfileEvent {
   final String address;
+  final double? latitude;
+  final double? longitude;
 
-  ProfileUpdateAddressRequested({required this.address});
+  ProfileUpdateAddressRequested({
+    required this.address,
+    this.latitude,
+    this.longitude,
+  });
 }
 
 class ProfileUpdateShopServicesRequested extends ProfileEvent {

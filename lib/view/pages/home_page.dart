@@ -9,6 +9,10 @@ import '../core/colors.dart';
 import '../widgets/admin_home_body.dart';
 import '../widgets/shop_card_widget.dart';
 import 'profile_page.dart';
+import 'location_picker_page.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,12 +33,147 @@ class _HomePageState extends State<HomePage> {
     'Stationery',
   ];
 
-  final location = 'Jakarta Selatan, ID';
+  String _locationName = 'Mencari lokasi...';
+  double? _currentLat;
+  double? _currentLng;
+  bool _isGpsValid = false;
+  String _gpsError = '';
+  bool _isEnforcing = false;
 
   @override
   void initState() {
     super.initState();
-    // Iteration 2 will handle Location and Discovery
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileState = context.read<ProfileBloc>().state;
+      if (profileState is ProfileLoaded && profileState.user.role == 'user') {
+        _enforceGps();
+      }
+    });
+  }
+
+  Future<void> _enforceGps() async {
+    if (_isEnforcing) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedAddress = prefs.getString('user_home_address');
+    final savedLat = prefs.getDouble('user_home_lat');
+    final savedLng = prefs.getDouble('user_home_lng');
+
+    if (savedAddress != null && savedLat != null && savedLng != null) {
+      setState(() {
+        _locationName = savedAddress;
+        _currentLat = savedLat;
+        _currentLng = savedLng;
+        _isGpsValid = true;
+      });
+      if (mounted) {
+        context.read<DiscoveryBloc>().add(DiscoverySearchRequested(
+          lat: _currentLat!,
+          lng: _currentLng!,
+        ));
+      }
+      return;
+    }
+
+    setState(() {
+      _isEnforcing = true;
+      _gpsError = 'Mengecek GPS...';
+    });
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() {
+        _isEnforcing = false;
+        _isGpsValid = false;
+        _gpsError = 'GPS tidak aktif. Mohon nyalakan GPS Anda.';
+      });
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          _isEnforcing = false;
+          _isGpsValid = false;
+          _gpsError = 'Izin lokasi ditolak. Aplikasi butuh lokasi Anda.';
+        });
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() {
+        _isEnforcing = false;
+        _isGpsValid = false;
+        _gpsError = 'Izin lokasi ditolak permanen. Buka pengaturan aplikasi untuk mengizinkan.';
+      });
+      return;
+    }
+
+    setState(() {
+      _gpsError = 'Mendapatkan lokasi...';
+    });
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      _currentLat = position.latitude;
+      _currentLng = position.longitude;
+
+      await _updateLocationName(_currentLat!, _currentLng!);
+
+      setState(() {
+        _isGpsValid = true;
+        _isEnforcing = false;
+      });
+
+      if (mounted) {
+        context.read<DiscoveryBloc>().add(DiscoverySearchRequested(
+          lat: _currentLat!,
+          lng: _currentLng!,
+        ));
+      }
+    } catch (e) {
+      setState(() {
+        _isEnforcing = false;
+        _isGpsValid = false;
+        _gpsError = 'Gagal mendapat lokasi: $e';
+      });
+    }
+  }
+
+  Future<void> _updateLocationName(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final name = place.thoroughfare?.isNotEmpty == true ? place.thoroughfare : place.subLocality;
+        final city = place.locality?.isNotEmpty == true ? place.locality : place.subAdministrativeArea;
+        _locationName = '${name ?? ''}, ${city ?? ''}'.trim().replaceAll(RegExp(r'^,\s*'), '');
+        if (_locationName.isEmpty) _locationName = 'Lokasi ditemukan';
+      }
+    } catch (e) {
+      _locationName = 'Detail alamat tidak ditemukan';
+    }
+  }
+
+  PageRouteBuilder _createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
   }
 
   @override
@@ -124,7 +263,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _selectedNavIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedNavIndex = index),
+      onTap: () {
+        setState(() => _selectedNavIndex = index);
+        if (index == 0) {
+          _enforceGps();
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -159,7 +303,62 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildGpsBlockingUI() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.location_off, size: 80, color: AppColors.primary),
+              const SizedBox(height: 24),
+              const Text(
+                'Akses Lokasi Diperlukan',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textHeading,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _gpsError,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _enforceGps,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHomeBody(BuildContext context) {
+    if (!_isGpsValid) {
+      return _buildGpsBlockingUI();
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -193,27 +392,87 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    color: AppColors.primary,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    location,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                      letterSpacing: 0.14,
+              const SizedBox(height: 16),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      _createRoute(
+                        LocationPickerPage(
+                          initialLat: _currentLat,
+                          initialLng: _currentLng,
+                        ),
+                      ),
+                    );
+                    if (result != null && result is Map<String, dynamic>) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('user_home_address', result['address']);
+                      await prefs.setDouble('user_home_lat', result['lat']);
+                      await prefs.setDouble('user_home_lng', result['lng']);
+
+                      if (!context.mounted) return;
+
+                      setState(() {
+                        _currentLat = result['lat'];
+                        _currentLng = result['lng'];
+                        _locationName = result['address'];
+                      });
+                      context.read<DiscoveryBloc>().add(DiscoverySearchRequested(
+                        lat: _currentLat!,
+                        lng: _currentLng!,
+                      ));
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: _isEnforcing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : Text(
+                                  _locationName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                        if (!_isEnforcing) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 20),
+                        ],
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(

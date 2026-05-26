@@ -57,6 +57,8 @@ class ProfileRepository {
     String? shopAddress,
     String? shopPhone,
     String? shopDescription,
+    double? latitude,
+    double? longitude,
   }) async {
     try {
       final shop = await _shopService.updateShop(
@@ -64,6 +66,8 @@ class ProfileRepository {
         shopAddress: shopAddress,
         shopPhone: shopPhone,
         shopDescription: shopDescription,
+        latitude: latitude,
+        longitude: longitude,
       );
       return Right(shop);
     } catch (e) {

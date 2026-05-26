@@ -141,7 +141,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(ProfileUpdateLoading(user: currentState.user, token: currentState.token));
 
     if (currentState.user.role == 'partner') {
-      final shopResult = await _profileRepository.updateShop(shopAddress: event.address);
+      final shopResult = await _profileRepository.updateShop(
+        shopAddress: event.address,
+        latitude: event.latitude,
+        longitude: event.longitude,
+      );
       await shopResult.fold(
         (failure) async {
           emit(ProfileUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
