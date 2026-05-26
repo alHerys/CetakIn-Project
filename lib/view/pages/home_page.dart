@@ -7,6 +7,7 @@ import '../../bloc/discovery/discovery_event.dart';
 import '../../bloc/discovery/discovery_state.dart';
 import '../core/colors.dart';
 import '../widgets/admin_home_body.dart';
+import '../widgets/partner_home_body.dart';
 import '../widgets/shop_card_widget.dart';
 import 'profile_page.dart';
 import 'location_picker_page.dart';
@@ -292,15 +293,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget _buildPartnerHomeBody() {
-    return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Text(
-          'Partner Dashboard (Coming Soon)',
-          style: TextStyle(fontSize: 18, color: AppColors.textHeading),
-        ),
-      ),
-    );
+    return const PartnerHomeBody();
   }
 
   Widget _buildGpsBlockingUI() {

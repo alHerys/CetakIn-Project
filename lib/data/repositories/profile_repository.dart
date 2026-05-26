@@ -59,6 +59,10 @@ class ProfileRepository {
     String? shopDescription,
     double? latitude,
     double? longitude,
+    String? openTime,
+    String? closeTime,
+    List<String>? operatingDays,
+    dynamic shopPhoto,
   }) async {
     try {
       final shop = await _shopService.updateShop(
@@ -68,6 +72,10 @@ class ProfileRepository {
         shopDescription: shopDescription,
         latitude: latitude,
         longitude: longitude,
+        openTime: openTime,
+        closeTime: closeTime,
+        operatingDays: operatingDays,
+        shopPhoto: shopPhoto,
       );
       return Right(shop);
     } catch (e) {

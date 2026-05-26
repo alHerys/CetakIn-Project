@@ -13,9 +13,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileRefreshRequested>(_onRefreshRequested);
     on<ProfileUpdateProfileAndShopRequested>(_onUpdateProfileAndShopRequested);
     on<ProfileUpdateAvatarRequested>(_onUpdateAvatarRequested);
+    on<ProfileUpdateShopPhotoRequested>(_onUpdateShopPhotoRequested);
     on<ProfileUpdateAddressRequested>(_onUpdateAddressRequested);
     on<ProfileUpdateShopServicesRequested>(_onUpdateShopServicesRequested);
     on<ProfileUpdateShopPricingRequested>(_onUpdateShopPricingRequested);
+    on<ProfileUpdateShopHoursRequested>(_onUpdateShopHoursRequested);
   }
 
   Future<void> _onLoadRequested(
@@ -131,6 +133,26 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
   }
 
+  Future<void> _onUpdateShopPhotoRequested(
+    ProfileUpdateShopPhotoRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ProfileLoaded) return;
+
+    emit(ProfileUpdateLoading(user: currentState.user, token: currentState.token));
+
+    final result = await _profileRepository.updateShop(shopPhoto: event.shopPhoto);
+    await result.fold(
+      (failure) async {
+        emit(ProfileUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+      },
+      (_) async {
+        await _fetchMeAndEmitSuccess(emit, currentState.token, 'Shop photo updated successfully');
+      },
+    );
+  }
+
   Future<void> _onUpdateAddressRequested(
     ProfileUpdateAddressRequested event,
     Emitter<ProfileState> emit,
@@ -224,6 +246,31 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         } else {
           emit(ProfileUpdateSuccess(message: message, user: user, token: token));
         }
+      },
+    );
+  }
+
+  Future<void> _onUpdateShopHoursRequested(
+    ProfileUpdateShopHoursRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ProfileLoaded) return;
+
+    emit(ProfileUpdateLoading(user: currentState.user, token: currentState.token));
+
+    final result = await _profileRepository.updateShop(
+      openTime: event.openTime,
+      closeTime: event.closeTime,
+      operatingDays: event.operatingDays,
+    );
+
+    await result.fold(
+      (failure) async {
+        emit(ProfileUpdateFailure(error: failure, user: currentState.user, token: currentState.token));
+      },
+      (_) async {
+        await _fetchMeAndEmitSuccess(emit, currentState.token, 'Shop hours updated successfully');
       },
     );
   }

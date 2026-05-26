@@ -23,11 +23,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
 
-  // Shop controllers for partner
-  late TextEditingController _shopNameController;
-  late TextEditingController _shopPhoneController;
-  late TextEditingController _shopDescriptionController;
-
   XFile? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -40,12 +35,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameController = TextEditingController(text: user?.name);
     _emailController = TextEditingController(text: user?.email);
     _phoneController = TextEditingController(text: user?.phone);
-
-    // Always initialize shop controllers to avoid late initialization errors
-    _shopNameController = TextEditingController(text: user?.shop?.shopName);
-    _shopPhoneController = TextEditingController(text: user?.shop?.shopPhone);
-    _shopDescriptionController =
-        TextEditingController(text: user?.shop?.shopDescription);
   }
 
   @override
@@ -53,9 +42,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _shopNameController.dispose();
-    _shopPhoneController.dispose();
-    _shopDescriptionController.dispose();
     super.dispose();
   }
 
@@ -87,15 +73,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
               name: _nameController.text,
               email: _emailController.text,
               phone: _phoneController.text,
-              shopName: _shopNameController.text.isNotEmpty
-                  ? _shopNameController.text
-                  : null,
-              shopPhone: _shopPhoneController.text.isNotEmpty
-                  ? _shopPhoneController.text
-                  : null,
-              shopDescription: _shopDescriptionController.text.isNotEmpty
-                  ? _shopDescriptionController.text
-                  : null,
               avatarPath: _selectedImage?.path,
             ),
           );
@@ -125,7 +102,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
       builder: (context, state) {
         if (state is ProfileLoaded) {
-          final isPartner = state.user.role == 'partner';
           final isLoading = state is ProfileUpdateLoading;
 
           return Scaffold(
@@ -134,9 +110,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: const BackButton(),
-              title: Text(
-                isPartner ? 'Edit Shop Info' : 'Edit Profile',
-                style: const TextStyle(color: AppColors.textHeading),
+              title: const Text(
+                'Edit Profile',
+                style: TextStyle(color: AppColors.textHeading),
               ),
             ),
             body: SingleChildScrollView(
@@ -261,45 +237,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           : null,
                     ),
 
-                    if (isPartner) ...[
-                      const SizedBox(height: 32),
-                      const Text(
-                        'Shop Information',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      AuthTextField(
-                        controller: _shopNameController,
-                        labelText: 'Shop Name',
-                        hintText: 'Enter shop name',
-                        icon: Icons.storefront_outlined,
-                        validator: (val) => val == null || val.isEmpty
-                            ? 'Shop name is required'
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      AuthTextField(
-                        controller: _shopPhoneController,
-                        labelText: 'Shop Phone',
-                        hintText: 'Enter shop phone number',
-                        icon: Icons.phone_in_talk_outlined,
-                        keyboardType: TextInputType.phone,
-                        validator: (val) => val == null || val.isEmpty
-                            ? 'Shop phone is required'
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      AuthTextField(
-                        controller: _shopDescriptionController,
-                        labelText: 'Shop Description',
-                        hintText: 'Enter shop description',
-                        icon: Icons.description_outlined,
-                      ),
-                    ],
+                    // Shop info is removed from this page
 
                     const SizedBox(height: 40),
                     ElevatedButton(

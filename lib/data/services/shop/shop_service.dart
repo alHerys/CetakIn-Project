@@ -34,20 +34,55 @@ class ShopService {
     String? shopDescription,
     double? latitude,
     double? longitude,
+    String? openTime,
+    String? closeTime,
+    List<String>? operatingDays,
+    MultipartFile? shopPhoto,
   }) async {
     try {
-      final data = <String, dynamic>{};
-      if (shopName != null) data['shop_name'] = shopName;
-      if (shopAddress != null) data['shop_address'] = shopAddress;
-      if (shopPhone != null) data['shop_phone'] = shopPhone;
-      if (shopDescription != null) data['shop_description'] = shopDescription;
-      if (latitude != null) data['latitude'] = latitude;
-      if (longitude != null) data['longitude'] = longitude;
-      
-      final response = await _dioClient.dio.put(
-        'shops/me',
-        data: data,
-      );
+      Response response;
+
+      if (shopPhoto != null) {
+        // Use POST with _method=PUT for multipart/form-data in Laravel
+        final Map<String, dynamic> mapData = {
+          '_method': 'PUT',
+          'shop_photo': shopPhoto,
+        };
+        if (shopName != null) mapData['shop_name'] = shopName;
+        if (shopAddress != null) mapData['shop_address'] = shopAddress;
+        if (shopPhone != null) mapData['shop_phone'] = shopPhone;
+        if (shopDescription != null) mapData['shop_description'] = shopDescription;
+        if (latitude != null) mapData['latitude'] = latitude;
+        if (longitude != null) mapData['longitude'] = longitude;
+        if (openTime != null) mapData['open_time'] = openTime;
+        if (closeTime != null) mapData['close_time'] = closeTime;
+        if (operatingDays != null) mapData['operating_days'] = operatingDays;
+
+        final formData = FormData.fromMap(mapData, ListFormat.multiCompatible);
+
+        response = await _dioClient.dio.post(
+          'shops/me',
+          data: formData,
+        );
+      } else {
+        // Use regular PUT with JSON for updates without files
+        final data = <String, dynamic>{};
+        if (shopName != null) data['shop_name'] = shopName;
+        if (shopAddress != null) data['shop_address'] = shopAddress;
+        if (shopPhone != null) data['shop_phone'] = shopPhone;
+        if (shopDescription != null) data['shop_description'] = shopDescription;
+        if (latitude != null) data['latitude'] = latitude;
+        if (longitude != null) data['longitude'] = longitude;
+        if (openTime != null) data['open_time'] = openTime;
+        if (closeTime != null) data['close_time'] = closeTime;
+        if (operatingDays != null) data['operating_days'] = operatingDays;
+        
+        response = await _dioClient.dio.put(
+          'shops/me',
+          data: data,
+        );
+      }
+
       final responseData = response.data['data'] as Map<String, dynamic>;
       
       // Map relations so ShopModel can parse them

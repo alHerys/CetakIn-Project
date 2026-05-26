@@ -35,6 +35,12 @@ class ProfileUpdateAvatarRequested extends ProfileEvent {
   ProfileUpdateAvatarRequested({required this.avatar});
 }
 
+class ProfileUpdateShopPhotoRequested extends ProfileEvent {
+  final dynamic shopPhoto;
+
+  ProfileUpdateShopPhotoRequested({required this.shopPhoto});
+}
+
 class ProfileUpdateAddressRequested extends ProfileEvent {
   final String address;
   final double? latitude;
@@ -72,5 +78,17 @@ class ProfileUpdateShopPricingRequested extends ProfileEvent {
     required this.fullColorPerPage,
     required this.doubleSideSurcharge,
     required this.bindingPrices,
+  });
+}
+
+class ProfileUpdateShopHoursRequested extends ProfileEvent {
+  final String openTime;
+  final String closeTime;
+  final List<String> operatingDays;
+
+  ProfileUpdateShopHoursRequested({
+    required this.openTime,
+    required this.closeTime,
+    required this.operatingDays,
   });
 }

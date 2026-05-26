@@ -12,6 +12,7 @@ class ShopModel {
   final String? shopPhotoUrl;
   final String? openTime;
   final String? closeTime;
+  final List<String>? operatingDays;
   final String? status;
   final String? rejectionReason;
   final double? averageRating;
@@ -37,6 +38,7 @@ class ShopModel {
     this.shopPhotoUrl,
     this.openTime,
     this.closeTime,
+    this.operatingDays,
     this.status,
     this.rejectionReason,
     this.averageRating,
@@ -62,6 +64,7 @@ class ShopModel {
       shopPhotoUrl: json['shop_photo_url'] as String?,
       openTime: json['open_time'] as String?,
       closeTime: json['close_time'] as String?,
+      operatingDays: (json['operating_days'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
       status: json['status'] as String?,
       rejectionReason: json['rejection_reason'] as String?,
       averageRating: json['average_rating'] != null
@@ -104,6 +107,7 @@ class ShopModel {
       'shop_photo_url': shopPhotoUrl,
       'open_time': openTime,
       'close_time': closeTime,
+      'operating_days': operatingDays,
       'status': status,
       'rejection_reason': rejectionReason,
       'average_rating': averageRating,
