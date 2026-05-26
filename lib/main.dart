@@ -26,6 +26,15 @@ import 'data/repositories/print_order_repository.dart';
 import 'bloc/order/customer/customer_order_bloc.dart';
 import 'bloc/order/partner/partner_order_bloc.dart';
 
+import 'data/services/shop/atk_product_service.dart';
+import 'data/repositories/atk_product_repository.dart';
+import 'bloc/atk/partner/partner_atk_bloc.dart';
+import 'bloc/atk/customer/atk_cart_bloc.dart';
+
+import 'data/repositories/atk_order_repository.dart';
+import 'bloc/order/customer_atk/customer_atk_order_bloc.dart';
+import 'bloc/order/partner_atk/partner_atk_order_bloc.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
@@ -36,11 +45,14 @@ void main() async {
   final shopService = ShopService(dioClient);
   final discoveryService = DiscoveryService(dioClient);
   final printOrderService = PrintOrderService(dioClient);
+  final atkProductService = AtkProductService(dioClient);
   
   final authRepository = AuthRepository(authService, prefs);
   final profileRepository = ProfileRepository(profileService, shopService);
   final discoveryRepository = DiscoveryRepository(discoveryService);
   final printOrderRepository = PrintOrderRepository(printOrderService);
+  final atkProductRepository = AtkProductRepository(atkProductService);
+  final atkOrderRepository = AtkOrderRepository(dioClient);
   
   final adminService = AdminService(dioClient);
   final adminRepository = AdminRepository(adminService);
@@ -62,6 +74,12 @@ void main() async {
         ),
         RepositoryProvider<PrintOrderRepository>(
           create: (context) => printOrderRepository,
+        ),
+        RepositoryProvider<AtkProductRepository>(
+          create: (context) => atkProductRepository,
+        ),
+        RepositoryProvider<AtkOrderRepository>(
+          create: (context) => atkOrderRepository,
         ),
       ],
       child: MultiBlocProvider(
@@ -86,6 +104,18 @@ void main() async {
           ),
           BlocProvider<PartnerOrderBloc>(
             create: (context) => PartnerOrderBloc(printOrderRepository),
+          ),
+          BlocProvider<PartnerAtkBloc>(
+            create: (context) => PartnerAtkBloc(atkProductRepository),
+          ),
+          BlocProvider<AtkCartBloc>(
+            create: (context) => AtkCartBloc(),
+          ),
+          BlocProvider<CustomerAtkOrderBloc>(
+            create: (context) => CustomerAtkOrderBloc(atkOrderRepository),
+          ),
+          BlocProvider<PartnerAtkOrderBloc>(
+            create: (context) => PartnerAtkOrderBloc(atkOrderRepository),
           ),
         ],
         child: const MyApp(),
