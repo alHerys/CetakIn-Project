@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CetakIn membutuhkan akses lokasi untuk menampilkan toko cetak terdekat di sekitar Anda.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>CetakIn membutuhkan akses lokasi untuk menampilkan toko cetak terdekat di sekitar Anda.</string>
 </dict>
 </plist>

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/profile/profile_bloc.dart';
 import '../../bloc/profile/profile_state.dart';
+import '../../bloc/discovery/discovery_bloc.dart';
+import '../../bloc/discovery/discovery_event.dart';
+import '../../bloc/discovery/discovery_state.dart';
 import '../core/colors.dart';
 import '../widgets/admin_home_body.dart';
 import '../widgets/shop_card_widget.dart';
@@ -29,11 +32,16 @@ class _HomePageState extends State<HomePage> {
   final location = 'Jakarta Selatan, ID';
 
   @override
+  void initState() {
+    super.initState();
+    // Iteration 2 will handle Location and Discovery
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
@@ -51,12 +59,18 @@ class _HomePageState extends State<HomePage> {
                       const AdminHomeBody(),
                       const ProfilePage(),
                     ]
-                  : [
-                      _buildHomeBody(),
-                      const Center(child: Text('Orders Page (Coming Soon)')),
-                      const Center(child: Text('Shop Page (Coming Soon)')),
-                      const ProfilePage(),
-                    ],
+                  : user.role == 'partner'
+                      ? [
+                          _buildPartnerHomeBody(),
+                          const Center(child: Text('Partner Orders (Coming Soon)')),
+                          const ProfilePage(),
+                        ]
+                      : [
+                          _buildHomeBody(context),
+                          const Center(child: Text('Orders Page (Coming Soon)')),
+                          const Center(child: Text('Shop Page (Coming Soon)')),
+                          const ProfilePage(),
+                        ],
             ),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
@@ -84,13 +98,18 @@ class _HomePageState extends State<HomePage> {
                             _buildNavItem(0, Icons.home_outlined, 'Home'),
                             _buildNavItem(1, Icons.person_outline, 'Profile'),
                           ]
-                        : [
-                            _buildNavItem(0, Icons.home_outlined, 'Home'),
-                            _buildNavItem(
-                                1, Icons.receipt_long_outlined, 'Orders'),
-                            _buildNavItem(2, Icons.storefront_outlined, 'Shop'),
-                            _buildNavItem(3, Icons.person_outline, 'Profile'),
-                          ],
+                        : user.role == 'partner'
+                            ? [
+                                _buildNavItem(0, Icons.storefront_outlined, 'Dashboard'),
+                                _buildNavItem(1, Icons.receipt_long_outlined, 'Orders'),
+                                _buildNavItem(2, Icons.person_outline, 'Profile'),
+                              ]
+                            : [
+                                _buildNavItem(0, Icons.home_outlined, 'Home'),
+                                _buildNavItem(1, Icons.receipt_long_outlined, 'Orders'),
+                                _buildNavItem(2, Icons.storefront_outlined, 'Shop'),
+                                _buildNavItem(3, Icons.person_outline, 'Profile'),
+                              ],
                   ),
                 ),
               ),
@@ -128,8 +147,19 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  Widget _buildPartnerHomeBody() {
+    return const Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Text(
+          'Partner Dashboard (Coming Soon)',
+          style: TextStyle(fontSize: 18, color: AppColors.textHeading),
+        ),
+      ),
+    );
+  }
 
-  Widget _buildHomeBody() {
+  Widget _buildHomeBody(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -246,31 +276,29 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 24),
-              const ShopCard(
-                title: 'Cetak Kilat Tebet',
-                distance: 1.2,
-                status: 'BUKA',
-                openTime: '08:00',
-                rating: 4.9,
-                imageUrl: 'https://picsum.photos/800/400?random=1',
-              ),
-              const SizedBox(height: 24),
-              const ShopCard(
-                title: 'Kencana Print',
-                distance: 1.5,
-                status: 'TUTUP',
-                openTime: '08:00',
-                rating: 4.7,
-                imageUrl: 'https://picsum.photos/800/400?random=2',
-              ),
-              const SizedBox(height: 24),
-              const ShopCard(
-                title: 'Warung Print',
-                distance: 2.1,
-                status: 'BUKA',
-                openTime: '07:00',
-                rating: 4.9,
-                imageUrl: 'https://picsum.photos/800/400?random=3',
+              BlocBuilder<DiscoveryBloc, DiscoveryState>(
+                builder: (context, state) {
+                  if (state is DiscoveryLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is DiscoveryError) {
+                    return Center(child: Text(state.message));
+                  } else if (state is DiscoveryLoaded) {
+                    if (state.shops.isEmpty) {
+                      return const Center(child: Text('Tidak ada toko terdekat'));
+                    }
+                    return Column(
+                      children: state.shops.map((shop) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: ShopCard(
+                            shop: shop,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+                  return const SizedBox();
+                },
               ),
               const SizedBox(height: 96),
             ],

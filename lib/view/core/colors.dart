@@ -24,4 +24,8 @@ class AppColors {
   
   static const Color ratingStar = Color(0xFFD97706);
   static const Color imagePlaceholder = Color(0xFFE2D4C8);
+  
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFEF4444);
 }

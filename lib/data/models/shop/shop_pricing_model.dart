@@ -42,4 +42,8 @@ class ShopPricingModel {
       'updated_at': updatedAt?.toIso8601String(),
     };
   }
+  
+  int get priceBlackWhiteA4 => blackAndWhitePerPage ?? 0;
+  int get priceColorA4 => fullColorPerPage ?? 0;
+  int get priceBinding => bindingPrices?.values.firstOrNull ?? 0;
 }

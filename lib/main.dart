@@ -6,14 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'bloc/admin/admin_bloc.dart';
 import 'bloc/auth/auth_bloc.dart';
 import 'bloc/profile/profile_bloc.dart';
+import 'bloc/discovery/discovery_bloc.dart';
+import 'bloc/discovery/shop_detail_bloc.dart';
 import 'data/repositories/admin_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/profile_repository.dart';
+import 'data/repositories/discovery_repository.dart';
 import 'data/services/admin/admin_service.dart';
 import 'data/services/auth/auth_service.dart';
 import 'data/services/dio_client.dart';
 import 'data/services/profile/profile_service.dart';
 import 'data/services/shop/shop_service.dart';
+import 'data/services/discovery/discovery_service.dart';
 import 'view/core/colors.dart';
 import 'view/pages/login_page.dart';
 
@@ -25,8 +29,10 @@ void main() async {
   final authService = AuthService(dioClient);
   final profileService = ProfileService(dioClient);
   final shopService = ShopService(dioClient);
+  final discoveryService = DiscoveryService(dioClient);
   final authRepository = AuthRepository(authService, prefs);
   final profileRepository = ProfileRepository(profileService, shopService);
+  final discoveryRepository = DiscoveryRepository(discoveryService);
   
   final adminService = AdminService(dioClient);
   final adminRepository = AdminRepository(adminService);
@@ -43,6 +49,9 @@ void main() async {
         RepositoryProvider<AdminRepository>(
           create: (context) => adminRepository,
         ),
+        RepositoryProvider<DiscoveryRepository>(
+          create: (context) => discoveryRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -54,6 +63,12 @@ void main() async {
           ),
           BlocProvider<AdminBloc>(
             create: (context) => AdminBloc(adminRepository),
+          ),
+          BlocProvider<DiscoveryBloc>(
+            create: (context) => DiscoveryBloc(discoveryRepository),
+          ),
+          BlocProvider<ShopDetailBloc>(
+            create: (context) => ShopDetailBloc(discoveryRepository),
           ),
         ],
         child: const MyApp(),

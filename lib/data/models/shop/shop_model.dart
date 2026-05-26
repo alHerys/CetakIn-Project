@@ -18,6 +18,7 @@ class ShopModel {
   final int? totalReviews;
   final double? latitude;
   final double? longitude;
+  final double? distanceKm;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -42,6 +43,7 @@ class ShopModel {
     this.totalReviews,
     this.latitude,
     this.longitude,
+    this.distanceKm,
     this.createdAt,
     this.updatedAt,
     this.shopService,
@@ -71,6 +73,9 @@ class ShopModel {
           : null,
       longitude: json['longitude'] != null
           ? double.tryParse(json['longitude'].toString())
+          : null,
+      distanceKm: json['distance_km'] != null
+          ? double.tryParse(json['distance_km'].toString())
           : null,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'])
@@ -105,6 +110,7 @@ class ShopModel {
       'total_reviews': totalReviews,
       'latitude': latitude,
       'longitude': longitude,
+      'distance_km': distanceKm,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'shop_service': shopService?.toJson(),

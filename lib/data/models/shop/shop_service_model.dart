@@ -48,4 +48,7 @@ class ShopServiceModel {
       'updated_at': updatedAt?.toIso8601String(),
     };
   }
+  
+  List<String> get supportedPaperSizes => paperSizes ?? [];
+  bool get hasColorPrint => colorModes != null && colorModes!.contains('color');
 }

@@ -1,35 +1,34 @@
 import 'package:flutter/material.dart';
+import '../../data/models/shop/shop_model.dart';
 import '../core/colors.dart';
+import '../pages/shop_detail_page.dart';
 
 class ShopCard extends StatelessWidget {
-  final String title;
-  final double distance;
-  final String status;
-  final String openTime;
-  final double rating;
-  final String imageUrl;
+  final ShopModel shop;
 
   const ShopCard({
     super.key,
-    required this.title,
-    required this.distance,
-    required this.status,
-    required this.openTime,
-    required this.rating,
-    required this.imageUrl,
+    required this.shop,
   });
 
   @override
   Widget build(BuildContext context) {
+    // TODO: (Dynamic Store Hours) Calculate real status (BUKA/TUTUP) based on openTime/closeTime and current time
+    final status = 'BUKA'; 
+
     return GestureDetector(
       onTap: () {
-        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ShopDetailPage(shopId: shop.id!),
+          ),
+        );
       },
       child: Container(
-        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: AppColors.shadow.withValues(alpha: 0.06),
@@ -42,23 +41,28 @@ class ShopCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Image Section
             Stack(
-              alignment: .topLeft,
+              alignment: Alignment.topLeft,
               children: [
                 Container(
                   height: 197,
-                  width: .infinity,
+                  width: double.infinity,
                   color: AppColors.imagePlaceholder,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    width: .infinity,
-                    height: 197,
-                  ),
+                  child: shop.shopPhotoUrl != null
+                      ? Image.network(
+                          shop.shopPhotoUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 197,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.storefront, size: 48, color: Colors.grey),
+                        )
+                      : const Icon(Icons.storefront, size: 48, color: Colors.grey),
                 ),
                 Container(
-                  margin: const .only(top: 13, left: 16),
-                  padding: const .symmetric(horizontal: 8, vertical: 3),
+                  margin: const EdgeInsets.only(top: 13, left: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: status == 'BUKA'
                         ? AppColors.statusOpenBg
@@ -69,7 +73,7 @@ class ShopCard extends StatelessWidget {
                     status,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: .w600,
+                      fontWeight: FontWeight.w600,
                       color: status == 'BUKA'
                           ? AppColors.statusOpenText
                           : AppColors.statusClosedText,
@@ -80,34 +84,38 @@ class ShopCard extends StatelessWidget {
             ),
       
             Padding(
-              padding: const .all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: .spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: .w600,
-                          color: AppColors.textHeading,
+                      Expanded(
+                        child: Text(
+                          shop.shopName ?? 'Unknown Shop',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textHeading,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Row(
-                        spacing: 4,
                         children: [
                           const Icon(
                             Icons.star,
                             color: AppColors.ratingStar,
                             size: 15,
                           ),
+                          const SizedBox(width: 4),
                           Text(
-                            rating.toString(),
-                            style: TextStyle(
+                            (shop.averageRating ?? 0.0).toStringAsFixed(1),
+                            style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: .w600,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.ratingStar,
                               letterSpacing: 0.14,
                             ),
@@ -128,10 +136,10 @@ class ShopCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        "$distance km",
-                        style: TextStyle(
+                        "${(shop.distanceKm ?? 0.0).toStringAsFixed(1)} km",
+                        style: const TextStyle(
                           fontSize: 13,
-                          fontWeight: .w400,
+                          fontWeight: FontWeight.w400,
                           color: AppColors.textSubtitle,
                         ),
                       ),
@@ -143,10 +151,10 @@ class ShopCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Buka $openTime',
-                        style: TextStyle(
+                        'Buka ${shop.openTime?.substring(0, 5) ?? '08:00'}',
+                        style: const TextStyle(
                           fontSize: 13,
-                          fontWeight: .w400,
+                          fontWeight: FontWeight.w400,
                           color: AppColors.textSubtitle,
                         ),
                       ),
