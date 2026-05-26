@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_event.dart';
-import '../../bloc/auth/auth_state.dart';
+import '../../bloc/profile/profile_bloc.dart';
+import '../../bloc/profile/profile_event.dart';
+import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import '../widgets/auth_text_field.dart';
 
@@ -20,8 +20,8 @@ class _EditAddressPageState extends State<EditAddressPage> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AuthBloc>().state;
-    final user = state is AuthSuccess ? state.user : null;
+    final state = context.read<ProfileBloc>().state;
+    final user = state is ProfileLoaded ? state.user : null;
     
     _addressController = TextEditingController(
       text: user?.role == 'partner' ? user?.shop?.shopAddress : '',
@@ -36,8 +36,8 @@ class _EditAddressPageState extends State<EditAddressPage> {
 
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(
-            AuthUpdateAddressRequested(
+      context.read<ProfileBloc>().add(
+            ProfileUpdateAddressRequested(
               address: _addressController.text,
             ),
           );
@@ -46,23 +46,23 @@ class _EditAddressPageState extends State<EditAddressPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<ProfileBloc, ProfileState>(
       listener: (context, state) {
-        if (state is AuthUpdateSuccess) {
+        if (state is ProfileUpdateSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
           Navigator.pop(context); // Go back after success
-        } else if (state is AuthUpdateFailure) {
+        } else if (state is ProfileUpdateFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error)),
           );
         }
       },
       builder: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is ProfileLoaded) {
           final isPartner = state.user.role == 'partner';
-          final isLoading = state is AuthUpdateLoading;
+          final isLoading = state is ProfileUpdateLoading;
 
           return Scaffold(
             backgroundColor: AppColors.background,

@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_event.dart';
-import '../../bloc/auth/auth_state.dart';
+import '../../bloc/profile/profile_bloc.dart';
+import '../../bloc/profile/profile_event.dart';
+import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import '../core/validator.dart';
 import '../widgets/auth_text_field.dart';
@@ -34,8 +34,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AuthBloc>().state;
-    final user = state is AuthSuccess ? state.user : null;
+    final state = context.read<ProfileBloc>().state;
+    final user = state is ProfileLoaded ? state.user : null;
 
     _nameController = TextEditingController(text: user?.name);
     _emailController = TextEditingController(text: user?.email);
@@ -82,8 +82,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(
-            AuthUpdateProfileAndShopRequested(
+      context.read<ProfileBloc>().add(
+            ProfileUpdateProfileAndShopRequested(
               name: _nameController.text,
               email: _emailController.text,
               phone: _phoneController.text,
@@ -104,9 +104,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<ProfileBloc, ProfileState>(
       listener: (context, state) {
-        if (state is AuthUpdateSuccess) {
+        if (state is ProfileUpdateSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
@@ -117,16 +117,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
           } else {
             Navigator.pop(context); // Go back after profile update success
           }
-        } else if (state is AuthUpdateFailure) {
+        } else if (state is ProfileUpdateFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error)),
           );
         }
       },
       builder: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is ProfileLoaded) {
           final isPartner = state.user.role == 'partner';
-          final isLoading = state is AuthUpdateLoading;
+          final isLoading = state is ProfileUpdateLoading;
 
           return Scaffold(
             backgroundColor: AppColors.background,

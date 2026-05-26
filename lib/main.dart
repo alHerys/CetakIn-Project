@@ -5,11 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bloc/admin/admin_bloc.dart';
 import 'bloc/auth/auth_bloc.dart';
+import 'bloc/profile/profile_bloc.dart';
 import 'data/repositories/admin_repository.dart';
 import 'data/repositories/auth_repository.dart';
+import 'data/repositories/profile_repository.dart';
 import 'data/services/admin/admin_service.dart';
 import 'data/services/auth/auth_service.dart';
 import 'data/services/dio_client.dart';
+import 'data/services/profile/profile_service.dart';
 import 'data/services/shop/shop_service.dart';
 import 'view/core/colors.dart';
 import 'view/pages/login_page.dart';
@@ -20,8 +23,10 @@ void main() async {
   
   final dioClient = DioClient(prefs);
   final authService = AuthService(dioClient);
+  final profileService = ProfileService(dioClient);
   final shopService = ShopService(dioClient);
-  final authRepository = AuthRepository(authService, shopService, prefs);
+  final authRepository = AuthRepository(authService, prefs);
+  final profileRepository = ProfileRepository(profileService, shopService);
   
   final adminService = AdminService(dioClient);
   final adminRepository = AdminRepository(adminService);
@@ -32,6 +37,9 @@ void main() async {
         RepositoryProvider<AuthRepository>(
           create: (context) => authRepository,
         ),
+        RepositoryProvider<ProfileRepository>(
+          create: (context) => profileRepository,
+        ),
         RepositoryProvider<AdminRepository>(
           create: (context) => adminRepository,
         ),
@@ -39,7 +47,10 @@ void main() async {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
-            create: (context) => AuthBloc(authRepository),
+            create: (context) => AuthBloc(authRepository, profileRepository),
+          ),
+          BlocProvider<ProfileBloc>(
+            create: (context) => ProfileBloc(profileRepository),
           ),
           BlocProvider<AdminBloc>(
             create: (context) => AdminBloc(adminRepository),

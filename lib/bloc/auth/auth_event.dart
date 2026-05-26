@@ -54,37 +54,3 @@ class AuthRegisterPartnerRequested extends AuthEvent {
 }
 
 class AuthLogoutRequested extends AuthEvent {}
-
-class AuthUpdateProfileAndShopRequested extends AuthEvent {
-  final String name;
-  final String email;
-  final String phone;
-  final String? shopName;
-  final String? shopPhone;
-  final String? shopDescription;
-  final String? avatarPath;
-
-  AuthUpdateProfileAndShopRequested({
-    required this.name,
-    required this.email,
-    required this.phone,
-    this.shopName,
-    this.shopPhone,
-    this.shopDescription,
-    this.avatarPath,
-  });
-}
-
-class AuthUpdateAvatarRequested extends AuthEvent {
-  final dynamic avatar;
-
-  AuthUpdateAvatarRequested({required this.avatar});
-}
-
-class AuthUpdateAddressRequested extends AuthEvent {
-  final String address;
-
-  AuthUpdateAddressRequested({required this.address});
-}
-
-class AuthRefreshUserRequested extends AuthEvent {}

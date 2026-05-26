@@ -13,20 +13,6 @@ class AuthSuccess extends AuthState {
   AuthSuccess({required this.user, required this.token});
 }
 
-class AuthUpdateLoading extends AuthSuccess {
-  AuthUpdateLoading({required super.user, required super.token});
-}
-
-class AuthUpdateSuccess extends AuthSuccess {
-  final String message;
-  AuthUpdateSuccess({required this.message, required super.user, required super.token});
-}
-
-class AuthUpdateFailure extends AuthSuccess {
-  final String error;
-  AuthUpdateFailure({required this.error, required super.user, required super.token});
-}
-
 class AuthFailure extends AuthState {
   final String message;
 

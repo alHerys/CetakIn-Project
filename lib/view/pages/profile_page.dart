@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
-import '../../bloc/auth/auth_state.dart';
+import '../../bloc/profile/profile_bloc.dart';
+import '../../bloc/profile/profile_event.dart';
+import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import 'edit_profile_page.dart';
 import 'edit_address_page.dart';
+import 'edit_shop_setup_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -13,9 +16,9 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
+    return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is ProfileLoaded) {
           final user = state.user;
           final isPartner = user.role == 'partner';
           final isAdmin = user.role == 'admin';
@@ -36,7 +39,7 @@ class ProfilePage extends StatelessWidget {
             ),
             body: RefreshIndicator(
               onRefresh: () async {
-                context.read<AuthBloc>().add(AuthRefreshUserRequested());
+                context.read<ProfileBloc>().add(ProfileRefreshRequested());
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -158,6 +161,17 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (isPartner)
+                        _buildProfileItem(
+                          icon: Icons.settings_suggest_outlined,
+                          title: 'Shop Services & Pricing',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditShopSetupPage(),
+                            ),
+                          ),
+                        ),
                       _buildProfileItem(
                         icon: Icons.location_on_outlined,
                         title: 'Edit Address',

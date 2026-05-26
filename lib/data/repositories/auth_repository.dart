@@ -1,17 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth/auth_response.dart';
-import '../models/auth/user_model.dart';
-import '../models/shop/shop_model.dart';
 import '../services/auth/auth_service.dart';
-import '../services/shop/shop_service.dart';
 
 class AuthRepository {
   final AuthService _authService;
-  final ShopService _shopService;
   final SharedPreferences _prefs;
 
-  AuthRepository(this._authService, this._shopService, this._prefs);
+  AuthRepository(this._authService, this._prefs);
 
   Future<Either<String, AuthResponse>> login(String email, String password) async {
     try {
@@ -86,56 +82,6 @@ class AuthRepository {
       await _authService.logout();
       await _clearToken();
       return const Right(null);
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
-  Future<Either<String, UserModel>> getMe() async {
-    try {
-      final response = await _authService.getMe();
-      return Right(response.user);
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
-  Future<Either<String, UserModel>> updateProfile({
-    required String name,
-    required String email,
-    required String phone,
-  }) async {
-    try {
-      final user = await _authService.updateProfile(name: name, email: email, phone: phone);
-      return Right(user);
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
-  Future<Either<String, UserModel>> updateAvatar(dynamic avatar) async {
-    try {
-      final user = await _authService.updateAvatar(avatar);
-      return Right(user);
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
-  Future<Either<String, ShopModel>> updateShop({
-    String? shopName,
-    String? shopAddress,
-    String? shopPhone,
-    String? shopDescription,
-  }) async {
-    try {
-      final shop = await _shopService.updateShop(
-        shopName: shopName,
-        shopAddress: shopAddress,
-        shopPhone: shopPhone,
-        shopDescription: shopDescription,
-      );
-      return Right(shop);
     } catch (e) {
       return Left(e.toString());
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_state.dart';
+import '../../bloc/profile/profile_bloc.dart';
+import '../../bloc/profile/profile_state.dart';
 import '../core/colors.dart';
 import '../widgets/admin_home_body.dart';
 import '../widgets/shop_card_widget.dart';
@@ -36,9 +36,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
+    return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is ProfileLoaded) {
           final user = state.user;
           final isAdmin = user.role == 'admin';
 

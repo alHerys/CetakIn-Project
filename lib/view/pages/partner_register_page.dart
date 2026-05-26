@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../bloc/profile/profile_bloc.dart';
+import '../../bloc/profile/profile_event.dart';
 import '../core/colors.dart';
 import '../core/validator.dart';
 import '../widgets/auth_text_field.dart';
@@ -118,6 +120,9 @@ class _PartnerRegisterPageState extends State<PartnerRegisterPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
+            context.read<ProfileBloc>().add(
+              ProfileLoadRequested(user: state.user, token: state.token),
+            );
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Registration successful! Awaiting approval.'),
